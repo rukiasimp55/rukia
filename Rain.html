@@ -123,7 +123,10 @@
   </div>
 
  
-  <audio id="bgMusic" src="wenever.mp3"></audio>
+  <audio id="bgMusic" src="seninsarkin.mp3" loop></audio>
+
+
+  <audio id="rainSound" src="rain.mp3" loop></audio>
 
 <script>
 const fullText = `Ichigo... do you know how I hate rain? And it rains in this world, too. If your heart is troubled, the skies will become cloudy. If you grieve, it will rain ever so easily. I wonder if you can understand... the fear of being rained on in this lonely world... To stop that rain, I shall lend you any strength, any power. If you just have faith in me, I will not allow any rain to fall upon this world. Trust me, Ichigo... As long as I am here, you'll never fight alone.`;
@@ -142,8 +145,10 @@ btn.addEventListener('click', () => {
   btn.classList.add('hidden');
 
  
-  music.volume = 0.5; 
-  music.play().catch(err => console.log("Müzik otomatik çalınamadı:", err));
+ music.volume = 0.5;
+  rainSound.volume = 0.25; 
+  music.play().catch(err => console.log("Müzik çalınamadı:", err));
+  rainSound.play().catch(err => console.log("Yağmur sesi çalınamadı:", err));
 
  
   startRain();
@@ -244,3 +249,4 @@ btn.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>
+
