@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Rain + Typewriter</title>
+<title>Rain + Typewriter + Music</title>
 <style>
   :root{
     --bg: #ffffff;
@@ -23,13 +23,11 @@
     overflow:hidden;
   }
 
-  
   body.dark{
     --bg: #050509;
     --fg: #f4f7fb;
   }
 
- 
   .center{
     position: absolute;
     inset:0;
@@ -38,7 +36,6 @@
     justify-content:center;
     pointer-events: auto;
   }
-
 
   .big-btn{
     background: transparent;
@@ -62,7 +59,6 @@
   }
   .big-btn:active{ transform: scale(0.98); }
 
- 
   .big-btn.hidden{
     opacity:0;
     transform: scale(0.95);
@@ -97,7 +93,6 @@
     transform: translateY(0);
   }
 
-
   #rainCanvas{
     position: absolute;
     inset:0;
@@ -105,7 +100,6 @@
     pointer-events:none;
     z-index: 5;
   }
-
 
   .text-wrap{ z-index: 10; color: var(--fg); }
   .center{ z-index: 15; }
@@ -115,7 +109,6 @@
     .big-btn{ transition:none; }
     .typewriter{ transition:none; border-right: none; }
   }
-
 </style>
 </head>
 <body>
@@ -129,13 +122,16 @@
     <div id="typewriter" class="typewriter" role="status"></div>
   </div>
 
-<script>
+ 
+  <audio id="bgMusic" src="wenever.mp3"></audio>
 
-const fullText = `Ichigo... do you know how I hate rain? And it rains in this world, too. If your heart is troubled, the skies will become cloudy. If you grieve, it will rain ever so easily. I wonder if you can understand... the fear of being rained on in this lonely world... To stop that rain, I shall lend you any strength, any power. If you just have faith in me, I will not allow any rain to fall upon this world. Trust me, Ich long sentence... As long as I am here, you'll never fight alone.`;
+<script>
+const fullText = `Ichigo... do you know how I hate rain? And it rains in this world, too. If your heart is troubled, the skies will become cloudy. If you grieve, it will rain ever so easily. I wonder if you can understand... the fear of being rained on in this lonely world... To stop that rain, I shall lend you any strength, any power. If you just have faith in me, I will not allow any rain to fall upon this world. Trust me, Ichigo... As long as I am here, you'll never fight alone.`;
 
 const btn = document.getElementById('mainBtn');
 const body = document.body;
 const typeEl = document.getElementById('typewriter');
+const music = document.getElementById('bgMusic');
 
 let started = false;
 btn.addEventListener('click', () => {
@@ -143,32 +139,30 @@ btn.addEventListener('click', () => {
   started = true;
 
   body.classList.add('dark');
-
-
   btn.classList.add('hidden');
+
+ 
+  music.volume = 0.5; 
+  music.play().catch(err => console.log("Müzik otomatik çalınamadı:", err));
 
  
   startRain();
   startTypewriter(fullText, typeEl, 30);
 });
 
-
 function startTypewriter(text, el, msPerChar = 45){
   el.classList.add('visible');
   el.textContent = '';
   let i = 0;
-
   function step(){
     if (i < text.length){
       el.textContent += text[i];
       i++;
-   
       let delay = msPerChar;
       if (text[i-1] === ',' || text[i-1] === ';') delay += 80;
       if (text[i-1] === '.' || text[i-1] === '?' || text[i-1] === '!') delay += 240;
       setTimeout(step, delay);
     } else {
-     
       el.style.borderRight = 'none';
     }
   }
@@ -177,7 +171,6 @@ function startTypewriter(text, el, msPerChar = 45){
 
 const canvas = document.getElementById('rainCanvas');
 const ctx = canvas.getContext('2d');
-
 let drops = [];
 let rainRunning = false;
 let lastTime = 0;
@@ -208,7 +201,6 @@ function makeDrops(count){
 }
 
 function startRain(){
-  
   const count = Math.floor(Math.max(80, (window.innerWidth * window.innerHeight) / 10000));
   makeDrops(count);
   rainRunning = true;
@@ -219,17 +211,13 @@ function startRain(){
 function loop(t){
   const dt = (t - lastTime) / 1000;
   lastTime = t;
-
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  
   ctx.lineWidth = 1.6;
   ctx.lineCap = 'round';
   for(let i=0;i<drops.length;i++){
     const d = drops[i];
     d.y += d.vel * dt;
     d.x += d.wind * dt;
-    
     if (d.y - d.len > (canvas.height / DPR) ){
       d.y = -10 - Math.random() * 200;
       d.x = Math.random() * canvas.width / DPR;
@@ -238,15 +226,12 @@ function loop(t){
       d.wind = -40 + Math.random()*80;
       d.opacity = 0.12 + Math.random()*0.35;
     }
-   
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(255,255,255,' + d.opacity + ')';
     ctx.moveTo(d.x, d.y);
     ctx.lineTo(d.x - d.wind * 0.06, d.y - d.len); 
     ctx.stroke();
   }
-
-
   if (rainRunning) requestAnimationFrame(loop);
 }
 
