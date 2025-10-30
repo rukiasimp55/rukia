@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hızlı Mesajlaşma - Şablon</title>
+  <style>
+    :root{--accent:#6C63FF;--bg:#0f1724;--card:#0b1320;--muted:#9aa4b2}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:linear-gradient(180deg,#071025 0%, #071a2b 100%);color:#e6eef6;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .app{width:100%;max-width:960px;margin:32px;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,.6);display:grid;grid-template-columns:320px 1fr;background:rgba(255,255,255,0.02)}
+    .sidebar{padding:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-right:1px solid rgba(255,255,255,0.03)}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .logo{width:44px;height:44px;border-radius:10px;background:var(--accent);display:grid;place-items:center;font-weight:700;color:#fff}
+    h1{font-size:16px;margin:0}
+    .me{margin-top:10px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.015);display:flex;align-items:center;gap:10px}
+    .initials{width:40px;height:40px;border-radius:8px;background:#0b1220;display:grid;place-items:center;font-weight:700}
+    .muted{color:var(--muted);font-size:13px}
+    .rooms{margin-top:18px}
+    .room{padding:8px;border-radius:8px;display:flex;align-items:center;gap:10px;cursor:pointer}
+    .room:hover{background:rgba(255,255,255,0.01)}
+
+    .chat{display:flex;flex-direction:column;height:640px}
+    .messages{flex:1;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+    .message{max-width:74%;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.02)}
+    .message.me{margin-left:auto;background:linear-gradient(90deg,var(--accent),#5561ff);color:white}
+    .meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+    .inputbar{padding:12px;border-top:1px solid rgba(255,255,255,0.02);display:flex;gap:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent)}
+    .inputbar input{flex:1;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+    .btn{background:var(--accent);border:none;padding:10px 14px;border-radius:10px;color:white;font-weight:600;cursor:pointer}
+    .small{font-size:12px;padding:6px 8px;border-radius:8px}
+    .typing{font-size:13px;color:var(--muted);padding-left:6px}
+
+    /* modal */
+    .modal{position:fixed;inset:0;background:linear-gradient(180deg, rgba(2,6,23,.6), rgba(2,6,23,.75));display:grid;place-items:center}
+    .card{width:100%;max-width:420px;background:linear-gradient(180deg,#071226,#061225);padding:22px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .card h2{margin:0 0 10px 0}
+    .colors{display:flex;gap:8px;margin-top:10px}
+    .color{width:36px;height:36px;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(2,6,23,.6)}
+
+    @media (max-width:800px){.app{grid-template-columns:1fr;padding:12px}.sidebar{display:none}.chat{height:80vh}}
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo">M</div><div><h1>Hızlı Chat</h1><div class="muted">Anında katıl, test et</div></div></div>
+      <div class="me" id="meCard" style="display:none"><div class="initials" id="meInitial">AB</div><div><div id="meName">İsim</div><div class="muted">Çevrimiçi</div></div></div>
+      <div class="rooms"><div class="muted" style="margin-bottom:8px">Odalar</div><div class="room"># Genel</div><div class="room"># Yazılım</div><div class="room"># Sohbet</div></div>
+    </aside>
+
+    <main class="chat">
+      <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between">
+        <div><strong># Genel</strong><div class="muted" style="font-size:13px">Hemen ismini gir ve sohbete başla</div></div>
+        <div class="muted" id="status">Bağlı: <span id="connState">bağlanıyor...</span></div>
+      </div>
+      <div class="messages" id="messages" aria-live="polite"></div>
+      <div class="inputbar">
+        <input id="messageInput" placeholder="Mesajını yaz... (Enter gönder)" autocomplete="off" />
+        <button class="btn" id="sendBtn">Gönder</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- isim modal -->
+  <div class="modal" id="nameModal">
+    <div class="card">
+      <h2>Hoş geldin! İsim gir</h2>
+      <p class="muted">Bu sayfada ismini girince anında sohbete katılırsın.</p>
+      <input id="nameInput" placeholder="Adın..." style="width:100%;padding:10px;margin-top:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" />
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+        <div class="muted">Avatar rengi</div>
+        <div class="colors">
+          <div class="color" data-color="#6C63FF" style="background:#6C63FF"></div>
+          <div class="color" data-color="#FF6B6B" style="background:#FF6B6B"></div>
+          <div class="color" data-color="#4CD97B" style="background:#4CD97B"></div>
+          <div class="color" data-color="#FFD166" style="background:#FFD166"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+        <button class="small" id="guestBtn">Misafir</button>
+        <button class="btn" id="joinBtn">Katıl</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const SOCKET_URL = "wss://chat-dgl4.onrender.com";
+    const messagesEl = document.getElementById('messages');
+    const input = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const nameModal = document.getElementById('nameModal');
+    const nameInput = document.getElementById('nameInput');
+    const joinBtn = document.getElementById('joinBtn');
+    const guestBtn = document.getElementById('guestBtn');
+    const meCard = document.getElementById('meCard');
+    const meNameEl = document.getElementById('meName');
+    const meInitial = document.getElementById('meInitial');
+    const connState = document.getElementById('connState');
+
+    let me = null;
+    let socket = null;
+
+    function uid(){return Math.random().toString(36).slice(2,9)}
+
+    // renk seçimi
+    document.querySelectorAll('.color').forEach(el=>el.addEventListener('click', e=>{
+      document.querySelectorAll('.color').forEach(x=>x.style.outline='');
+      e.currentTarget.style.outline='3px solid rgba(255,255,255,0.08)';
+      nameModal.dataset.color = e.currentTarget.dataset.color;
+    }));
+
+    guestBtn.addEventListener('click', ()=>{
+      nameInput.value = 'Misafir_' + uid();
+      join();
+    });
+
+    joinBtn.addEventListener('click', join);
+    nameInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') join(); });
+
+    function join(){
+      const name = nameInput.value.trim();
+      if(!name) return nameInput.focus();
+      const color = nameModal.dataset.color || '#6C63FF';
+      me = {id: uid(), name, color};
+      nameModal.style.display='none';
+      meCard.style.display='flex';
+      meNameEl.textContent = me.name;
+      meInitial.textContent = me.name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+
+      // WebSocket başlat
+      socket = new WebSocket(SOCKET_URL);
+
+      socket.addEventListener('open', ()=>{
+        connState.textContent = 'sunucu (WebSocket)';
+        sendSystem(me.name + ' katıldı.');
+      });
+
+      socket.addEventListener('message', (ev)=>{
+        try {
+          const msg = JSON.parse(ev.data);
+          pushMessage(msg, msg.userId === me.id);
+        } catch(e){console.warn(e);}
+      });
+    }
+
+    function send(text){
+      if(!me || !socket || socket.readyState!==WebSocket.OPEN) return;
+      const msg = {id: uid(), userId: me.id, name: me.name, color: me.color, text, time:new Date().toISOString()};
+      socket.send(JSON.stringify(msg));
+      pushMessage(msg, true);
+    }
+
+    function sendSystem(text){
+      const sys = {id: uid(), userId:'sys', name:'Sistem', color:'#666', text, time:new Date().toISOString(), system:true};
+      if(socket && socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify(sys));
+      pushMessage(sys, false);
+    }
+
+    function pushMessage(msg, isMe){
+      const el = document.createElement('div');
+      el.className = 'message' + (isMe && !msg.system ? ' me' : '');
+      if(msg.system){
+        el.textContent = msg.text;
+        el.style.opacity = 0.9;
+        el.style.fontStyle = 'italic';
+      } else {
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const nameSpan = document.createElement('strong'); nameSpan.textContent = msg.name;
+        nameSpan.style.marginRight='8px';
+        const time = document.createElement('span'); time.textContent = ' • ' + new Date(msg.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        meta.appendChild(nameSpan); meta.appendChild(time);
+        const bubble = document.createElement('div'); bubble.textContent = msg.text; bubble.style.marginTop='6px';
+        el.appendChild(meta); el.appendChild(bubble);
+        el.style.borderLeft = '4px solid ' + (msg.color || '#6C63FF'); el.style.paddingLeft='10px';
+      }
+      messagesEl.appendChild(el);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', ()=>{ if(input.value.trim()){ send(input.value.trim()); input.value=''; input.focus(); } });
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(input.value.trim()){ send(input.value.trim()); input.value=''; } } });
+
+    // demo mesajı
+    setTimeout(()=>{ if(!messagesEl.children.length) pushMessage({id:'d1', userId:'sys', name:'Sistem', color:'#666', text:'Selam! İsmini girip hemen katılabilirsin.', time:new Date().toISOString(), system:true}); },300);
+  })();
+  </script>
+</body>
+</html>
