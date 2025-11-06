@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>İletişim - TechZone</title>
+  <style>
+    /* === Genel === */
+    :root{
+      --accent: #0072ff;
+      --dark: #111;
+      --bg: #f9f9f9;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --success:#28a745;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #f9fbff 0%, var(--bg) 100%);
+      color:#111;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    /* === Header === */
+    header{
+      background:var(--dark);
+      color:white;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 36px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.12);
+    }
+    header h1{color:var(--accent); font-size:1.25rem; letter-spacing:0.4px}
+    nav a{
+      color:#fff;
+      text-decoration:none;
+      margin-left:20px;
+      font-weight:500;
+      opacity:0.95;
+    }
+    nav a:hover{color:var(--accent)}
+
+    /* === Sayfa düzeni === */
+    main{flex:1; width:100%;}
+    .container{
+      max-width:1100px;
+      margin:40px auto;
+      padding:0 20px;
+    }
+
+    .hero{
+      text-align:center;
+      margin-bottom:28px;
+    }
+    .hero h2{font-size:1.6rem; color:#223; margin-bottom:8px}
+    .hero p{color:var(--muted)}
+
+    /* === Kart (form) === */
+    .card{
+      display:flex;
+      gap:30px;
+      align-items:center;
+      background:var(--card);
+      border-radius:14px;
+      padding:28px;
+      box-shadow:0 8px 30px rgba(16,24,40,0.06);
+    }
+
+    .left{
+      flex:1;
+      min-width:280px;
+    }
+    .right{
+      flex:1;
+      min-width:320px;
+    }
+
+    .brand-badge{
+      display:inline-block;
+      background:linear-gradient(90deg,var(--accent),#00c6ff);
+      color:white;
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:600;
+      margin-bottom:14px;
+      box-shadow:0 6px 18px rgba(0,114,255,0.12);
+    }
+
+    .card h3{margin:6px 0 12px; color:#0f1724}
+    .card p{color:var(--muted); line-height:1.6}
+
+    /* form elemanları */
+    form{display:flex;flex-direction:column;gap:12px}
+    label{font-size:0.85rem;color:#374151}
+    .input, textarea{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      border:1px solid #e6e9ef;
+      background:white;
+      font-size:0.95rem;
+      color:#111;
+      transition:box-shadow .15s, border-color .15s;
+    }
+    .input:focus, textarea:focus{
+      outline:none;
+      border-color:var(--accent);
+      box-shadow:0 6px 20px rgba(0,114,255,0.08);
+    }
+    textarea{min-height:140px; resize:vertical; line-height:1.5}
+
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:800px){ .card{flex-direction:column} .row{grid-template-columns:1fr} }
+
+    .actions{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-top:6px;
+    }
+
+    .btn{
+      background:var(--accent);
+      color:white;
+      border:none;
+      padding:11px 18px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      box-shadow:0 8px 18px rgba(0,114,255,0.12);
+      transition:transform .12s, box-shadow .12s, background .12s;
+    }
+    .btn:hover{transform:translateY(-3px)}
+    .btn.secondary{
+      background:#fff;
+      color:#374151;
+      border:1px solid #e6e9ef;
+      box-shadow:none;
+    }
+
+    .note{font-size:0.85rem;color:var(--muted)}
+
+    /* hata/success */
+    .msg{
+      padding:10px 14px;
+      border-radius:10px;
+      font-size:0.95rem;
+      display:none;
+    }
+    .msg.error{background:#fff1f0;color:#b91c1c;border:1px solid #fecaca}
+    .msg.success{background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0}
+
+    /* küçük stil notları */
+    footer{
+      background:var(--dark);
+      color:#a1a1aa;
+      text-align:center;
+      padding:18px 16px;
+      font-size:0.9rem;
+      margin-top:36px;
+    }
+
+    /* animasyonlu overlay onay penceresi */
+    .overlay{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(2,6,23,0.45);
+      z-index:1200;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s;
+    }
+    .overlay.show{opacity:1; pointer-events:auto}
+    .toast{
+      background:white;
+      padding:28px 26px;
+      border-radius:12px;
+      max-width:420px;
+      text-align:center;
+      box-shadow:0 18px 60px rgba(2,6,23,0.35);
+      transform:translateY(10px);
+      transition:transform .18s;
+    }
+    .overlay.show .toast{transform:translateY(0)}
+    .toast h4{margin:0 0 8px;color:#0f1724}
+    .toast p{color:var(--muted); margin-bottom:14px}
+    .toast .ok{background:var(--success); color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TechZone</h1>
+    <nav>
+      <a href="ana.html">Ana Sayfa</a>
+      <a href="mağaza.html">Ürünler</a>
+      <a href="hakkimizda.html">Hakkımızda</a>
+      <a href="iletisim.html" style="opacity:0.9">İletişim</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="hero">
+        <h2>Bize Ulaş</h2>
+        <p>Her türlü soru, öneri veya iş birliği teklifin için aşağıdan mesaj atabilirsin. Cevap veriyoruz, merak etme 🤝</p>
+      </div>
+
+      <div class="card" role="region" aria-labelledby="contact-heading">
+        <div class="left" aria-hidden="true">
+          <span class="brand-badge">TechZone Destek</span>
+          <h3 id="contact-heading">Hızlı Destek & İş Birliği</h3>
+          <p>Formu doldur; en geç 24 saat içinde sana dönüş yapmaya çalışacağız. (Demo form — gerçek e-posta göndermiyor.)</p>
+
+          <div style="margin-top:18px;">
+            <p style="margin:6px 0; color:var(--muted)"><strong>Adres:</strong> İstanbul, Türkiye</p>
+            <p style="margin:6px 0; color:var(--muted)"><strong>E-posta:</strong> destek@techzone.demo</p>
+            <p style="margin:6px 0; color:var(--muted)"><strong>Çalışma Saatleri:</strong> Hafta içi 09:00 - 18:00</p>
+          </div>
+        </div>
+
+        <div class="right">
+          <form id="contactForm" novalidate>
+            <div id="formMsg" class="msg" role="status" aria-live="polite"></div>
+
+            <label for="name">Ad Soyad</label>
+            <input id="name" name="name" class="input" placeholder="Adın ve soyadın" required>
+
+            <label for="email">E-posta</label>
+            <input id="email" name="email" class="input" type="email" placeholder="ornek@eposta.com" required>
+
+            <label for="subject">Konu (Opsiyonel)</label>
+            <input id="subject" name="subject" class="input" placeholder="Konu başlığı">
+
+            <label for="message">Mesajın</label>
+            <textarea id="message" name="message" placeholder="Nasıl yardımcı olabiliriz?" required></textarea>
+
+            <div class="actions">
+              <button type="submit" class="btn">Gönder</button>
+              <button type="button" id="clearBtn" class="btn secondary">Temizle</button>
+              <div style="flex:1"></div>
+            </div>
+
+            <p class="note">Kişisel veriler güvenle saklanır — bu bir demo formdur, veri dışa gönderilmez.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 TechZone | Tüm hakları saklıdır
+  </footer>
+
+  <!-- onay overlay -->
+  <div id="overlay" class="overlay" aria-hidden="true">
+    <div class="toast" role="dialog" aria-modal="true" aria-labelledby="toastTitle">
+      <h4 id="toastTitle">Mesajın Alındı!</h4>
+      <p>Teşekkürler — mesajını aldık. Demo olduğu için gerçek e-posta gönderilmedi. En kısa sürede cevap geliyormuş gibi davran :)</p>
+      <button class="ok" id="okBtn">Tamam kanka</button>
+    </div>
+  </div>
+
+  <script>
+    // Basit client-side demo validasyon ve gösterge
+    (function(){
+      const form = document.getElementById('contactForm');
+      const msgBox = document.getElementById('formMsg');
+      const overlay = document.getElementById('overlay');
+      const okBtn = document.getElementById('okBtn');
+      const clearBtn = document.getElementById('clearBtn');
+
+      function showMsg(text, type){
+        msgBox.textContent = text;
+        msgBox.className = 'msg ' + (type === 'err' ? 'error' : 'success');
+        msgBox.style.display = 'block';
+      }
+
+      function clearMsg(){
+        msgBox.style.display = 'none';
+        msgBox.textContent = '';
+        msgBox.className = 'msg';
+      }
+
+      function isEmailValid(email){
+        // basit ama yeterli düzenli ifade
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        clearMsg();
+
+        const name = form.name.value.trim();
+        const email = form.email.value.trim();
+        const message = form.message.value.trim();
+
+        if(!name || !email || !message){
+          showMsg('Lütfen adın, e-postan ve mesaj alanını doldur.', 'err');
+          return;
+        }
+        if(!isEmailValid(email)){
+          showMsg('Geçerli bir e-posta adresi gir lütfen.', 'err');
+          return;
+        }
+
+        // demo: "gönderiliyor" hissi
+        showMsg('Gönderiliyor...', 'success');
+
+        // ufak gecikme ile onay overlay göster
+        setTimeout(()=>{
+          clearMsg();
+          overlay.classList.add('show');
+          overlay.setAttribute('aria-hidden','false');
+          // formu sıfırla (demo olduğundan veriler saklanmıyor)
+          form.reset();
+        }, 900);
+      });
+
+      okBtn.addEventListener('click', function(){
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden','true');
+      });
+
+      clearBtn.addEventListener('click', function(){
+        form.reset();
+        clearMsg();
+      });
+
+      // ESC ile kapatma
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && overlay.classList.contains('show')){
+          overlay.classList.remove('show');
+          overlay.setAttribute('aria-hidden','true');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sepet - TechZone</title>
+  <style>
+    :root {
+      --accent: #0072ff;
+      --dark: #111;
+      --bg: #f9f9f9;
+      --card: #fff;
+      --muted: #6b7280;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: var(--dark);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 36px;
+    }
+    header h1 { color: var(--accent); font-size: 1.25rem; }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 500;
+    }
+    nav a:hover { color: var(--accent); }
+
+    main {
+      flex: 1;
+      max-width: 1000px;
+      margin: 40px auto;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 1.6rem;
+      color: #111827;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      padding: 14px 0;
+    }
+    .cart-item img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-right: 20px;
+    }
+    .info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    .info h3 {
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .info p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .quantity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .quantity button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .quantity span { font-weight: 600; min-width: 20px; text-align: center; }
+
+    .remove {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    .total {
+      text-align: right;
+      font-size: 1.1rem;
+      margin-top: 20px;
+      font-weight: 600;
+    }
+
+    .buy-btn {
+      display: block;
+      margin: 20px auto 0;
+      background: var(--accent);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(0,114,255,0.15);
+      transition: transform 0.1s;
+    }
+    .buy-btn:hover { transform: translateY(-2px); }
+
+    footer {
+      background: var(--dark);
+      color: #a1a1aa;
+      text-align: center;
+      padding: 16px;
+      font-size: 0.9rem;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>TechZone</h1>
+    <nav>
+      <a href="ana.html">Ana Sayfa</a>
+      <a href="mağaza.html">Ürünler</a>
+      <a href="hakkimizda.html">Hakkımızda</a>
+      <a href="iletisim.html">İletişim</a>
+      <a href="sepet.html" style="color:var(--accent)">🛒 Sepet</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Alışveriş Sepetin</h2>
+
+    <div id="cart">
+      <div class="cart-item" data-price="39999">
+        <div class="info">
+          <img src="xiaomi14tpro.webp" alt="Xiaomi 14T Pro">
+          <div>
+            <h3>Xiaomi 14T Pro</h3>
+            <p>Fiyat: 39.999 TL</p>
+          </div>
+        </div>
+        <div class="quantity">
+          <button class="decrease">-</button>
+          <span>1</span>
+          <button class="increase">+</button>
+          <button class="remove">Sil</button>
+        </div>
+      </div>
+
+      <div class="cart-item" data-price="79999">
+        <div class="info">
+          <img src="15pro.jpg" alt="iPhone 15 Pro">
+          <div>
+            <h3>iPhone 15 Pro</h3>
+            <p>Fiyat: 79.999 TL</p>
+          </div>
+        </div>
+        <div class="quantity">
+          <button class="decrease">-</button>
+          <span>1</span>
+          <button class="increase">+</button>
+          <button class="remove">Sil</button>
+        </div>
+      </div>
+
+      <div class="cart-item" data-price="69999">
+        <div class="info">
+          <img src="s24.webp" alt="Samsung S24 Ultra">
+          <div>
+            <h3>Samsung Galaxy S24 Ultra</h3>
+            <p>Fiyat: 69.999 TL</p>
+          </div>
+        </div>
+        <div class="quantity">
+          <button class="decrease">-</button>
+          <span>1</span>
+          <button class="increase">+</button>
+          <button class="remove">Sil</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="total" id="total">Toplam: 189.997 TL</div>
+    <button class="buy-btn" id="buyBtn">Satın Al</button>
+  </main>
+
+  <footer>
+    © 2025 TechZone | Tüm hakları saklıdır
+  </footer>
+
+  <script>
+    const cart = document.getElementById("cart");
+    const total = document.getElementById("total");
+    const buyBtn = document.getElementById("buyBtn");
+
+    function updateTotal() {
+      let totalPrice = 0;
+      document.querySelectorAll(".cart-item").forEach(item => {
+        const price = parseInt(item.dataset.price);
+        const qty = parseInt(item.querySelector("span").textContent);
+        totalPrice += price * qty;
+      });
+      total.textContent = "Toplam: " + totalPrice.toLocaleString("tr-TR") + " TL";
+    }
+
+    cart.addEventListener("click", e => {
+      if (e.target.classList.contains("increase") || e.target.classList.contains("decrease")) {
+        const item = e.target.closest(".cart-item");
+        const span = item.querySelector("span");
+        let qty = parseInt(span.textContent);
+        if (e.target.classList.contains("increase")) qty++;
+        if (e.target.classList.contains("decrease") && qty > 1) qty--;
+        span.textContent = qty;
+        updateTotal();
+      }
+
+      if (e.target.classList.contains("remove")) {
+        e.target.closest(".cart-item").remove();
+        updateTotal();
+      }
+    });
+
+    buyBtn.addEventListener("click", () => {
+      alert("🛍️ Demo işlem tamamlandı!\nBu sadece bir önizlemedir, gerçek satın alma işlemi yapılmaz.");
+    });
+
+    updateTotal();
+  </script>
+
+</body>
+</html>
