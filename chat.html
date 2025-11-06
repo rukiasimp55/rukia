@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Hızlı Mesajlaşma - Şablon</title>
+<title>Escord</title>
 <style>
 :root{--accent:#6C63FF;--bg:#0f1724;--card:#0b1320;--muted:#9aa4b2}
 *{box-sizing:border-box}
@@ -40,7 +40,7 @@ h1{font-size:16px;margin:0}
 <body>
 <div class="app" id="app">
 <aside class="sidebar">
-<div class="brand"><div class="logo">M</div><div><h1>Hızlı Chat</h1><div class="muted">Anında katıl, test et</div></div></div>
+<div class="brand"><div class="logo">M</div><div><h1>Genel</h1><div class="muted">Anında katıl, test et</div></div></div>
 <div class="me" id="meCard" style="display:none"><div class="initials" id="meInitial">AB</div><div><div id="meName">İsim</div><div class="muted">Çevrimiçi</div></div></div>
 <div class="rooms"><div class="muted" style="margin-bottom:8px">Odalar</div><div class="room"># Genel</div><div class="room"># Yazılım</div><div class="room"># Sohbet</div></div>
 </aside>
@@ -94,87 +94,113 @@ const meCard = document.getElementById('meCard');
 const meNameEl = document.getElementById('meName');
 const meInitial = document.getElementById('meInitial');
 const connState = document.getElementById('connState');
+const roomEls = document.querySelectorAll('.room');
 
 let me = null;
 let socket = null;
+let currentRoom = "Genel";
+let roomsData = {
+  "Genel": [],
+  "Yazılım": [],
+  "Sohbet": []
+};
 
 function uid(){return Math.random().toString(36).slice(2,9)}
 
 // renk seçimi
 document.querySelectorAll('.color').forEach(el=>el.addEventListener('click', e=>{
-document.querySelectorAll('.color').forEach(x=>x.style.outline='');
-e.currentTarget.style.outline='3px solid rgba(255,255,255,0.08)';
-nameModal.dataset.color = e.currentTarget.dataset.color;
+  document.querySelectorAll('.color').forEach(x=>x.style.outline='');
+  e.currentTarget.style.outline='3px solid rgba(255,255,255,0.08)';
+  nameModal.dataset.color = e.currentTarget.dataset.color;
 }));
 
 guestBtn.addEventListener('click', ()=>{
-nameInput.value = 'Misafir_' + uid();
-join();
+  nameInput.value = 'Misafir_' + uid();
+  join();
 });
 
 joinBtn.addEventListener('click', join);
 nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') join(); });
 
 function join(){
-const name = nameInput.value.trim();
-if(!name) return nameInput.focus();
-const color = nameModal.dataset.color || '#6C63FF';
-me = {id: uid(), name, color};
-nameModal.style.display='none';
-meCard.style.display='flex';
-meNameEl.textContent = me.name;
-meInitial.textContent = me.name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+  const name = nameInput.value.trim();
+  if(!name) return nameInput.focus();
+  const color = nameModal.dataset.color || '#6C63FF';
+  me = {id: uid(), name, color};
+  nameModal.style.display='none';
+  meCard.style.display='flex';
+  meNameEl.textContent = me.name;
+  meInitial.textContent = me.name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
 
-// WebSocket başlat
-socket = new WebSocket(SOCKET_URL);
+  socket = new WebSocket(SOCKET_URL);
 
-socket.addEventListener('open', ()=>{
-connState.textContent = 'sunucu (WebSocket)';
-sendSystem(me.name + ' katıldı.');
-});
+  socket.addEventListener('open', ()=>{
+    connState.textContent = 'sunucu (WebSocket)';
+    sendSystem(me.name + ' katıldı.', currentRoom);
+  });
 
-socket.addEventListener('message', (ev)=>{
-try {
-const msg = JSON.parse(ev.data);
-pushMessage(msg, msg.userId === me.id && !msg.system);
-} catch(e){console.warn(e);}
-});
+  socket.addEventListener('message', (ev)=>{
+    try {
+      const msg = JSON.parse(ev.data);
+      // oda kontrolü
+      if (!msg.room) msg.room = "Genel";
+      if (!roomsData[msg.room]) roomsData[msg.room] = [];
+      roomsData[msg.room].push(msg);
+      if (msg.room === currentRoom) pushMessage(msg, msg.userId === me.id && !msg.system);
+    } catch(e){console.warn(e);}
+  });
 }
 
 function send(text){
-if(!me || !socket || socket.readyState!==WebSocket.OPEN) return;
-const msg = {id: uid(), userId: me.id, name: me.name, color: me.color, text, time:new Date().toISOString()};
-socket.send(JSON.stringify(msg));
-// pushMessage(msg, true);  <-- artık kaldırıldı, WebSocket üzerinden eklenecek
+  if(!me || !socket || socket.readyState!==WebSocket.OPEN) return;
+  const msg = {id: uid(), userId: me.id, name: me.name, color: me.color, text, room: currentRoom, time:new Date().toISOString()};
+  socket.send(JSON.stringify(msg));
 }
 
-function sendSystem(text){
-const sys = {id: uid(), userId:'sys', name:'Sistem', color:'#666', text, time:new Date().toISOString(), system:true};
-if(socket && socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify(sys));
-pushMessage(sys, false);
+function sendSystem(text, room){
+  const sys = {id: uid(), userId:'sys', name:'Sistem', color:'#666', text, room, time:new Date().toISOString(), system:true};
+  if(socket && socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify(sys));
+  pushMessage(sys, false);
 }
 
 function pushMessage(msg, isMe){
-const el = document.createElement('div');
-el.className = 'message' + (isMe && !msg.system ? ' me' : '');
-if(msg.system){
-el.textContent = msg.text;
-el.style.opacity = 0.9;
-el.style.fontStyle = 'italic';
-} else {
-const meta = document.createElement('div');
-meta.className = 'meta';
-const nameSpan = document.createElement('strong'); nameSpan.textContent = msg.name;
-nameSpan.style.marginRight='8px';
-const time = document.createElement('span'); time.textContent = ' • ' + new Date(msg.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-meta.appendChild(nameSpan); meta.appendChild(time);
-const bubble = document.createElement('div'); bubble.textContent = msg.text; bubble.style.marginTop='6px';
-el.appendChild(meta); el.appendChild(bubble);
-el.style.borderLeft = '4px solid ' + (msg.color || '#6C63FF'); el.style.paddingLeft='10px';
+  const el = document.createElement('div');
+  el.className = 'message' + (isMe && !msg.system ? ' me' : '');
+  if(msg.system){
+    el.textContent = msg.text;
+    el.style.opacity = 0.9;
+    el.style.fontStyle = 'italic';
+  } else {
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const nameSpan = document.createElement('strong'); nameSpan.textContent = msg.name;
+    nameSpan.style.marginRight='8px';
+    const time = document.createElement('span'); time.textContent = ' • ' + new Date(msg.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    meta.appendChild(nameSpan); meta.appendChild(time);
+    const bubble = document.createElement('div'); bubble.textContent = msg.text; bubble.style.marginTop='6px';
+    el.appendChild(meta); el.appendChild(bubble);
+    el.style.borderLeft = '4px solid ' + (msg.color || '#6C63FF'); el.style.paddingLeft='10px';
+  }
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
 }
-messagesEl.appendChild(el);
-messagesEl.scrollTop = messagesEl.scrollHeight;
-}
+
+// oda değiştirme
+roomEls.forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const roomName = el.textContent.replace('# ','');
+    if(roomName === currentRoom) return;
+    currentRoom = roomName;
+
+    document.querySelector('strong').textContent = '# ' + roomName;
+    messagesEl.innerHTML = '';
+
+    const roomMsgs = roomsData[currentRoom] || [];
+    roomMsgs.forEach(m=>pushMessage(m, m.userId===me?.id && !m.system));
+
+    sendSystem(me.name + ' ' + roomName + ' odasına geçti.', roomName);
+  });
+});
 
 sendBtn.addEventListener('click', ()=>{ if(input.value.trim()){ send(input.value.trim()); input.value=''; input.focus(); } });
 input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(input.value.trim()){ send(input.value.trim()); input.value=''; } } });
@@ -183,5 +209,6 @@ input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ if(input.value.trim(
 setTimeout(()=>{ if(!messagesEl.children.length) pushMessage({id:'d1', userId:'sys', name:'Sistem', color:'#666', text:'Selam! İsmini girip hemen katılabilirsin.', time:new Date().toISOString(), system:true}); },300);
 })();
 </script>
+
 </body>
 </html>
