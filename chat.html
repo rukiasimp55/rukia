@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Escord</title>
+<title>Chatly</title>
 <style>
 :root{--accent:#6C63FF;--bg:#0f1724;--card:#0b1320;--muted:#9aa4b2}
 *{box-sizing:border-box}
@@ -35,9 +35,28 @@ h1{font-size:16px;margin:0}
 .colors{display:flex;gap:8px;margin-top:10px}
 .color{width:36px;height:36px;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(2,6,23,.6)}
 @media (max-width:800px){.app{grid-template-columns:1fr;padding:12px}.sidebar{display:none}.chat{height:80vh}}
+.chat-title {
+  display: none; /* başta gizli */
+  text-align: center;
+  font-size: 48px;
+  font-weight: bold;
+  color: #6C63FF;
+  margin: 16px 0;
+}
+
+/* modal kapandığında göster */
+#nameModal:not([style*="display: block"]) ~ .app main .chat-title {
+  display: block;
+}
+
+
 </style>
 </head>
 <body>
+<div id="chatTitle" style="display:none; text-align:center; font-size:48px; font-weight:bold; margin:16px 0; color:#6C63FF;">
+  Chatly
+</div>
+
 <div class="app" id="app">
 <aside class="sidebar">
 <div class="brand"><div class="logo">M</div><div><h1>Genel</h1><div class="muted">Anında katıl, test et</div></div></div>
@@ -46,6 +65,7 @@ h1{font-size:16px;margin:0}
 </aside>
 
 <main class="chat">
+<div style="text-align: center;"><h1>Chatly</h1></div>
 <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between">
 <div><strong># Genel</strong><div class="muted" style="font-size:13px">Hemen ismini gir ve sohbete başla</div></div>
 <div class="muted" id="status">Bağlı: <span id="connState">bağlanıyor...</span></div>
