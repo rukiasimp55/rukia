@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Babalar Günü Kutlu Olsun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a; 
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --accent: #fbbf24; 
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--accent);
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+       
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 600px;
+        }
+
+        .photo-frame {
+            background: #fff;
+            padding: 15px 15px 40px 15px; 
+            border-radius: 4px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transform: rotate(-3deg);
+            transition: transform 0.3s ease;
+            max-width: 350px;
+        }
+
+        .photo-frame:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 2px;
+        }
+
+       
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin: 4rem 0 2rem;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            border-top: 4px solid var(--accent);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(251, 191, 36, 0.1);
+        }
+
+        .card i {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        
+        .timeline {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: var(--accent);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -1px;
+        }
+
+        .timeline-item {
+            padding: 20px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            right: -8px;
+            background-color: var(--bg-color);
+            border: 4px solid var(--accent);
+            top: 25px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .left { left: 0; }
+        .right {
+            left: 50%;
+        }
+
+        .right::after {
+            left: -8px;
+        }
+
+        .timeline-content {
+            padding: 1.5rem;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+        }
+
+    
+        .extras-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        
+        @media screen and (max-width: 768px) {
+            .timeline::before { left: 31px; }
+            .timeline-item { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .timeline-item::before { left: 60px; border: medium solid white; border-width: 10px 10px 10px 0; border-color: transparent white transparent transparent; }
+            .left::after, .right::after { left: 23px; }
+            .right { left: 0%; }
+        }
+    </style>
+</head>
+<body>
+
+   
+    <section class="hero">
+        <div class="fade-in">
+            <h1>Babalar Günün Kutlu Olsun</h1>
+            <p>Bana hayatı öğreten, her düştüğümde elimden tutan canım babama özel küçük bir dijital hatıra...</p>
+        </div>
+        
+        <div class="photo-frame fade-in">
+          
+            <img src="bababiloben.jpeg" alt="Babam ve Ben">
+        </div>
+        <br>
+        <div class="photo-frame fade-in">
+            <img src="babaana.jpeg" alt="Babam ve Ben">
+        </div>
+        <br>
+        <div class="photo-frame fade-in">
+          
+            <img src="kurabiyebaba.jpeg" alt="Babam ve Ben">
+        </div>
+    </section>
+
+    <h2 class="section-title fade-in">Neden Kralsın?</h2>
+    <section class="cards-container">
+        <div class="card fade-in">
+            <i class="fa-solid fa-compass"></i>
+            <h3>Yol Göstericim</h3>
+            <p>Hayatta ne zaman kaybolsam, senin tecrüben ve bilgeliğin her zaman bana doğru yolu gösterdi.</p>
+        </div>
+        <div class="card fade-in">
+            <i class="fa-solid fa-shield-heart"></i>
+            <h3>Güvenli Limanım</h3>
+            <p>Dünyada ne olursa olsun, arkamda kapı gibi senin durduğunu bilmek bana en büyük gücü veriyor.</p>
+        </div>
+        <div class="card fade-in">
+            <i class="fa-solid fa-face-smile"></i>
+            <h3>En İyi Dostum</h3>
+            <p>Sadece bir baba değil, aynı zamanda birlikte en çok güldüğüm,en saçma ama komik esprileri olan sana kocaman teşekkürler.</p>
+        </div>
+    </section>
+
+    
+    <h2 class="section-title fade-in">Güzel Anılarımız</h2>
+    <div class="timeline">
+        <div class="timeline-item left fade-in">
+            <div class="timeline-content">
+                <h3 style="color: var(--accent);">Çocukluk Yıllarım</h3>
+                <p>Bilal ve annemi evde bırakıp sadece ikimiz köye gidip kışın çangalları balta ile bana yapmayı öğrettiğin gün.</p>
+            </div>
+        </div>
+        <div class="timeline-item right fade-in">
+            <div class="timeline-content">
+                <h3 style="color: var(--accent);">9.sınıfta vedalaşırken (son kez bizim odadaki dolapları kapıları yaptığın gün)</h3>
+                <p>O gün gözlerindeki o "Bu çocuk artık büyüdü" dediğini görmek, benim için en büyük gurur duygusu oldu.</p>
+            </div>
+        </div>
+        <div class="timeline-item left fade-in">
+            <div class="timeline-content">
+                <h3 style="color: var(--accent);">Bugün ve Daima</h3>
+                <p>Daha birlikte biriktireceğimiz çok anı var. İyi ki varsın!</p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title fade-in">Senin Şarkın</h2>
+    <div class="extras-container fade-in">
+        <p style="margin-bottom: 20px; color: var(--text-muted);">Bu siteyi gezerken senin sevdiğin o şarkı çalsın istedim...</p>
+        
+        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/6OYWwrrA1DrthAF6XcCzAF?utm_source=generator&si=f15c64ab79114b67" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    </div>
+
+    
+    <footer class="fade-in">
+        <i class="fa-solid fa-heart" style="color: #ef4444; font-size: 1.5rem; margin-bottom: 10px;"></i>
+        <h2>Seni Çok Seviyorum Baba!</h2>
+        <p style="margin-top: 10px; color: var(--text-muted);">Babalar Günü 2026. || Created with ❤️ for my amazing dad.</p>
+    </footer>
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            document.querySelectorAll('.fade-in').forEach((element) => {
+                observer.observe(element);
+            });
+        });
+    </script>
+</body>
+</html>
