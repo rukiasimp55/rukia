@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#04050a" />
+<title>AURORA — Neofutistik Müzik İstasyonu</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@300..500&display=swap" rel="stylesheet" />
+
+<style>
+/* ====== AURORA — TASARIM SİSTEMİ ====== */
+:root{
+  --bg:#04050a; --panel-a:rgba(255,255,255,.055); --panel-b:rgba(255,255,255,.014);
+  --stroke:rgba(255,255,255,.08); --stroke-hi:rgba(255,255,255,.18);
+  --txt:#e9edf9; --txt-dim:#8b93ad; --txt-mute:#5c6480;
+  --cyan:#22d3ee; --purple:#a855f7; --pink:#ff2d95; --mint:#7dffcf;
+  --accent:#a855f7; --accent-2:#22d3ee;
+  --r-lg:22px; --r-md:14px; --r-sm:10px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--txt);
+  font-family:'Space Grotesk',ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px; line-height:1.5; min-height:100dvh; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased; transition:background .8s var(--ease);
+}
+button,input{font:inherit;color:inherit;}
+button{cursor:pointer;border:none;background:none;}
+img{display:block;max-width:100%;}
+ul{margin:0;padding:0;list-style:none;}
+::selection{background:var(--accent);color:#05060a;}
+*::-webkit-scrollbar{width:8px;height:8px;}
+*::-webkit-scrollbar-track{background:transparent;}
+*::-webkit-scrollbar-thumb{
+  background:linear-gradient(var(--accent),var(--accent-2));
+  border-radius:99px;border:2px solid transparent;background-clip:padding-box;
+}
+
+/* ====== ARKA PLAN ====== */
+.bg-layer{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.aurora{position:absolute;inset:-25%;filter:blur(90px) saturate(140%);opacity:.6;transition:opacity 1s var(--ease);}
+.blob{position:absolute;border-radius:50%;mix-blend-mode:screen;will-change:transform;}
+.b1{width:58vmax;height:58vmax;left:-12%;top:-18%;
+  background:radial-gradient(circle at 50% 50%,rgba(124,58,237,.9),rgba(124,58,237,0) 62%);
+  animation:driftA 26s ease-in-out infinite alternate;}
+.b2{width:50vmax;height:50vmax;right:-14%;top:2%;
+  background:radial-gradient(circle at 50% 50%,rgba(34,211,238,.75),rgba(34,211,238,0) 62%);
+  animation:driftB 33s ease-in-out infinite alternate;}
+.b3{width:46vmax;height:46vmax;left:22%;bottom:-22%;
+  background:radial-gradient(circle at 50% 50%,rgba(255,45,149,.55),rgba(255,45,149,0) 62%);
+  animation:driftC 39s ease-in-out infinite alternate;}
+.b4{width:40vmax;height:40vmax;right:16%;bottom:-14%;
+  background:radial-gradient(circle at 50% 50%,rgba(125,255,207,.42),rgba(125,255,207,0) 62%);
+  animation:driftA 31s ease-in-out infinite alternate-reverse;}
+@keyframes driftA{0%{transform:translate3d(0,0,0) scale(1);}50%{transform:translate3d(6vw,4vh,0) scale(1.12);}100%{transform:translate3d(-4vw,8vh,0) scale(.95);}}
+@keyframes driftB{0%{transform:translate3d(0,0,0) scale(1.05);}50%{transform:translate3d(-8vw,6vh,0) scale(.9);}100%{transform:translate3d(4vw,-6vh,0) scale(1.15);}}
+@keyframes driftC{0%{transform:translate3d(0,0,0) scale(.95);}50%{transform:translate3d(7vw,-7vh,0) scale(1.18);}100%{transform:translate3d(-6vw,-2vh,0) scale(1);}}
+#starfield{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.1s var(--ease);}
+.grain{position:absolute;inset:-120%;opacity:.032;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grainShift 7s steps(6) infinite;}
+@keyframes grainShift{0%{transform:translate(0,0);}20%{transform:translate(-4%,3%);}40%{transform:translate(3%,-4%);}60%{transform:translate(-3%,-3%);}80%{transform:translate(4%,2%);}100%{transform:translate(0,0);}}
+.vignette{position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 50% 0%,transparent 40%,rgba(0,0,0,.55) 100%),
+             radial-gradient(80% 60% at 50% 110%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%);
+  transition:background .8s var(--ease);}
+
+/* ====== LAYOUT ====== */
+.app{position:relative;z-index:1;max-width:1340px;margin:0 auto;
+  padding:18px clamp(12px,3vw,28px) 40px;display:flex;flex-direction:column;gap:16px;}
+.glass{background:linear-gradient(160deg,var(--panel-a),var(--panel-b));
+  border:1px solid var(--stroke);border-radius:var(--r-lg);
+  backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);
+  box-shadow:0 28px 70px -34px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);position:relative;}
+.glass::before{content:'';position:absolute;inset:0 0 auto 0;height:1px;border-radius:99px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 70%,transparent),color-mix(in srgb,var(--accent-2) 70%,transparent),transparent);
+  opacity:.7;pointer-events:none;}
+
+/* ====== TOPBAR ====== */
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 16px;position:sticky;top:10px;z-index:40;}
+.brand{display:flex;align-items:center;gap:11px;flex-shrink:0;}
+.brand-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+  background:conic-gradient(from 140deg,var(--accent),var(--accent-2),var(--pink),var(--accent));
+  box-shadow:0 0 22px -4px var(--accent),inset 0 0 12px rgba(0,0,0,.6);
+  animation:markSpin 12s linear infinite;}
+.brand-mark span{width:12px;height:12px;border-radius:50%;background:#04050a;box-shadow:inset 0 0 6px var(--accent-2);}
+@keyframes markSpin{to{transform:rotate(360deg);}}
+.brand-text h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.34em;
+  background:linear-gradient(92deg,#fff,var(--accent-2) 45%,var(--accent) 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.brand-text p{margin:0;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.22em;color:var(--txt-mute);text-transform:uppercase;}
+
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.035);border:1px solid var(--stroke);border-radius:99px;
+  padding:7px 8px 7px 16px;transition:border-color .3s var(--ease),box-shadow .3s var(--ease),background .3s var(--ease);}
+.search:focus-within{border-color:color-mix(in srgb,var(--accent) 60%,transparent);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent),0 0 30px -8px var(--accent);}
+.search svg{flex-shrink:0;opacity:.5;}
+.search input{flex:1;min-width:0;background:none;border:none;outline:none;font-size:14px;color:var(--txt);padding:4px 0;}
+.search input::placeholder{color:var(--txt-mute);}
+.search-btn{flex-shrink:0;padding:8px 18px;border-radius:99px;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  background:linear-gradient(120deg,var(--accent),var(--accent-2));color:#05060a;
+  box-shadow:0 0 24px -6px var(--accent);transition:transform .25s var(--ease-out),box-shadow .25s var(--ease),filter .25s;}
+.search-btn:hover{transform:translateY(-1px);box-shadow:0 0 34px -4px var(--accent);filter:brightness(1.1);}
+.search-btn:active{transform:translateY(0) scale(.97);}
+
+.top-actions{display:flex;gap:8px;flex-shrink:0;}
+.icon-btn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(255,255,255,.04);border:1px solid var(--stroke);color:var(--txt-dim);
+  transition:all .28s var(--ease);}
+.icon-btn:hover{color:#fff;border-color:var(--stroke-hi);background:rgba(255,255,255,.09);box-shadow:0 0 22px -6px var(--accent);}
+.icon-btn.on{color:#05060a;background:linear-gradient(120deg,var(--accent-2),var(--accent));border-color:transparent;box-shadow:0 0 28px -4px var(--accent-2);}
+
+/* ====== MOOD ====== */
+.mood-core{display:flex;align-items:center;gap:12px;padding:2px 2px 0;}
+.mood-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--txt-mute);
+  white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:7px;}
+.mood-label::after{content:'';width:26px;height:1px;background:linear-gradient(90deg,var(--accent),transparent);}
+.moods{display:flex;gap:9px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:none;}
+.moods::-webkit-scrollbar{display:none;}
+.mood{--m:#a855f7;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:8px 15px 8px 11px;
+  border-radius:99px;background:rgba(255,255,255,.035);border:1px solid var(--stroke);
+  transition:all .3s var(--ease);position:relative;overflow:hidden;}
+.mood::after{content:'';position:absolute;inset:0;border-radius:99px;
+  background:radial-gradient(circle at 30% 50%,color-mix(in srgb,var(--m) 40%,transparent),transparent 70%);
+  opacity:0;transition:opacity .35s var(--ease);}
+.mood:hover{border-color:color-mix(in srgb,var(--m) 55%,transparent);transform:translateY(-2px);box-shadow:0 10px 30px -14px var(--m);}
+.mood:hover::after{opacity:1;}
+.mood.active{border-color:color-mix(in srgb,var(--m) 80%,transparent);
+  box-shadow:0 0 26px -8px var(--m),inset 0 0 20px -12px var(--m);}
+.mood.active::after{opacity:.85;}
+.mood-ico{font-size:15px;position:relative;z-index:1;filter:drop-shadow(0 0 8px var(--m));}
+.mood-txt{display:flex;flex-direction:column;align-items:flex-start;position:relative;z-index:1;line-height:1.15;}
+.mood-txt strong{font-size:12.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap;}
+.mood-txt em{font-style:normal;font-size:9px;color:var(--txt-mute);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;white-space:nowrap;}
+
+/* ====== GRID ====== */
+.grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:16px;align-items:start;}
+
+/* ====== PLAYER ====== */
+.player-panel{padding:16px;display:flex;flex-direction:column;gap:14px;}
+
+.video-shell{
+  position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--r-md);overflow:hidden;
+  background:#000;border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 0 50px -18px var(--accent),inset 0 0 40px rgba(0,0,0,.9);
+  transition:all .8s var(--ease-out);
+}
+#yt-player,
+#yt-player iframe,
+.video-shell > iframe{
+  position:absolute !important;
+  top:0 !important;left:0 !important;
+  width:100% !important;height:100% !important;
+  border:0 !important;
+}
+.video-shell::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;opacity:.6;
+}
+.video-shell .corner{position:absolute;width:18px;height:18px;z-index:4;pointer-events:none;
+  border-color:color-mix(in srgb,var(--accent-2) 80%,transparent);opacity:.75;}
+.corner.tl{top:8px;left:8px;border-top:1.5px solid;border-left:1.5px solid;border-radius:4px 0 0 0;}
+.corner.tr{top:8px;right:8px;border-top:1.5px solid;border-right:1.5px solid;border-radius:0 4px 0 0;}
+.corner.bl{bottom:8px;left:8px;border-bottom:1.5px solid;border-left:1.5px solid;border-radius:0 0 0 4px;}
+.corner.br{bottom:8px;right:8px;border-bottom:1.5px solid;border-right:1.5px solid;border-radius:0 0 4px 0;}
+
+.video-overlay{
+  position:absolute;inset:0;z-index:6;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at 50% 50%,rgba(4,5,10,.35),rgba(4,5,10,.75));
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  cursor:pointer;
+  border-radius:inherit;
+  transition:opacity .45s var(--ease),visibility .45s;
+}
+.video-overlay.hide{opacity:0;visibility:hidden;pointer-events:none;}
+.video-overlay .play-big{
+  width:78px;height:78px;border-radius:50%;
+  display:grid;place-items:center;color:#05060a;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 60px -6px var(--accent),0 0 0 8px color-mix(in srgb,var(--accent) 12%,transparent);
+  animation:playPulse 2.4s ease-in-out infinite;
+  transition:transform .25s var(--ease-out);
+}
+.video-overlay:hover .play-big{transform:scale(1.08);}
+.video-overlay .play-big svg{width:30px;height:30px;margin-left:4px;}
+.video-overlay .hint{
+  position:absolute;bottom:16px;left:0;right:0;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.26em;
+  text-transform:uppercase;color:rgba(255,255,255,.65);
+  pointer-events:none;
+}
+@keyframes playPulse{
+  0%,100%{box-shadow:0 0 60px -6px var(--accent),0 0 0 8px color-mix(in srgb,var(--accent) 12%,transparent);}
+  50%{box-shadow:0 0 80px 4px var(--accent-2),0 0 0 14px color-mix(in srgb,var(--accent-2) 8%,transparent);}
+}
+
+.now-meta{display:flex;align-items:center;gap:13px;min-width:0;}
+.now-badge{flex-shrink:0;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(140deg,color-mix(in srgb,var(--accent) 30%,transparent),color-mix(in srgb,var(--accent-2) 20%,transparent));
+  border:1px solid var(--stroke-hi);font-size:17px;box-shadow:0 0 22px -8px var(--accent);}
+.now-text{min-width:0;flex:1;}
+.now-title{margin:0;font-size:15px;font-weight:600;letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.now-artist{margin:2px 0 0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--txt-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.live-pill{flex-shrink:0;display:none;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
+  padding:5px 10px;border-radius:99px;
+  border:1px solid color-mix(in srgb,var(--pink) 60%,transparent);
+  color:var(--pink);background:color-mix(in srgb,var(--pink) 12%,transparent);}
+.live-pill.show{display:inline-flex;}
+.live-pill i{width:6px;height:6px;border-radius:50%;background:var(--pink);animation:blink 1.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 10px var(--pink);}50%{opacity:.25;box-shadow:none;}}
+
+.viz-shell{position:relative;height:132px;border-radius:var(--r-md);overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.008));
+  border:1px solid var(--stroke);transition:height .6s var(--ease-out);}
+#viz{display:block;width:100%;height:100%;}
+.viz-tag{position:absolute;top:8px;left:12px;z-index:2;font-family:'JetBrains Mono',monospace;
+  font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--txt-mute);pointer-events:none;}
+
+.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.ctrl{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  background:rgba(255,255,255,.045);border:1px solid var(--stroke);color:var(--txt-dim);
+  transition:all .26s var(--ease);}
+.ctrl:hover{color:#fff;border-color:var(--stroke-hi);background:rgba(255,255,255,.1);transform:translateY(-2px);}
+.ctrl:active{transform:translateY(0) scale(.94);}
+.ctrl.play{width:54px;height:54px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  border:none;color:#05060a;box-shadow:0 0 34px -6px var(--accent),inset 0 1px 0 rgba(255,255,255,.4);}
+.ctrl.play:hover{filter:brightness(1.12);transform:translateY(-2px) scale(1.03);box-shadow:0 0 46px -4px var(--accent);}
+body.is-playing .ctrl.play{animation:playPulse2 2.4s ease-in-out infinite;}
+@keyframes playPulse2{0%,100%{box-shadow:0 0 34px -6px var(--accent);}50%{box-shadow:0 0 54px 2px var(--accent-2);}}
+
+.volume-wrap{display:flex;align-items:center;gap:9px;padding:0 14px;height:42px;border-radius:99px;
+  background:rgba(255,255,255,.035);border:1px solid var(--stroke);flex:1;min-width:130px;max-width:220px;}
+.volume-wrap svg{flex-shrink:0;opacity:.55;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:99px;outline:none;
+  background-color:rgba(255,255,255,.09);
+  background-image:linear-gradient(90deg,var(--accent),var(--accent-2));
+  background-repeat:no-repeat;
+  background-size:72% 100%;
+  cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:#fff;box-shadow:0 0 12px var(--accent-2),0 0 0 3px rgba(255,255,255,.08);transition:transform .2s var(--ease);}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25);}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border:none;border-radius:50%;background:#fff;box-shadow:0 0 12px var(--accent-2);}
+
+.progress-row{display:flex;align-items:center;gap:12px;}
+.time{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--txt-dim);letter-spacing:.06em;flex-shrink:0;min-width:38px;}
+.time.right{text-align:right;}
+.progress{flex:1;height:6px;border-radius:99px;position:relative;background:rgba(255,255,255,.07);
+  cursor:pointer;overflow:hidden;transition:height .25s var(--ease);}
+.progress:hover{height:9px;}
+.progress-fill{position:absolute;inset:0 auto 0 0;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 16px -2px var(--accent-2);transition:width .25s linear;}
+.progress:hover .progress-fill{box-shadow:0 0 22px 0 var(--accent-2);}
+.progress.live .progress-fill{width:100%!important;opacity:.35;transition:none;}
+
+.library-panel{padding:16px;display:flex;flex-direction:column;gap:12px;max-height:calc(100dvh - 190px);}
+.lib-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.lib-title{margin:0;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--txt-mute);display:flex;align-items:center;gap:8px;}
+.lib-title::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);}
+.lib-count{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--txt-mute);letter-spacing:.1em;}
+
+.track-list{display:flex;flex-direction:column;gap:5px;overflow-y:auto;padding-right:4px;max-height:calc(100dvh - 260px);}
+.track{display:flex;align-items:center;gap:11px;padding:8px;border-radius:var(--r-md);cursor:pointer;
+  border:1px solid transparent;transition:all .24s var(--ease);position:relative;}
+.track:hover{background:rgba(255,255,255,.05);border-color:var(--stroke);transform:translateX(3px);}
+.track.active{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 16%,transparent),transparent 85%);
+  border-color:color-mix(in srgb,var(--accent) 40%,transparent);}
+.track.active::before{content:'';position:absolute;left:0;top:18%;bottom:18%;width:2.5px;border-radius:99px;
+  background:linear-gradient(var(--accent),var(--accent-2));box-shadow:0 0 12px var(--accent);}
+.thumb{position:relative;width:56px;height:42px;flex-shrink:0;border-radius:9px;overflow:hidden;
+  background:#0c0e17;border:1px solid var(--stroke);}
+.thumb img{width:100%;height:100%;object-fit:cover;opacity:.85;transition:all .3s var(--ease);}
+.track:hover .thumb img{opacity:1;transform:scale(1.08);}
+.thumb .play-ico{position:absolute;inset:0;display:grid;place-items:center;background:rgba(4,5,10,.55);
+  color:#fff;font-size:12px;opacity:0;transition:opacity .28s var(--ease);backdrop-filter:blur(2px);}
+.track:hover .thumb .play-ico{opacity:1;}
+.track.active .thumb .play-ico{opacity:1;background:color-mix(in srgb,var(--accent) 45%,rgba(4,5,10,.5));}
+
+.track-meta{flex:1;min-width:0;}
+.track-name{margin:0;font-size:12.8px;font-weight:500;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-artist{margin:2px 0 0;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--txt-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-badge{flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.14em;
+  padding:3px 7px;border-radius:6px;border:1px solid var(--stroke);color:var(--txt-mute);}
+.track-badge.live{border-color:color-mix(in srgb,var(--pink) 50%,transparent);color:var(--pink);}
+.empty{padding:40px 16px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--txt-mute);}
+.skeleton{height:58px;border-radius:var(--r-md);
+  background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.03) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s linear infinite;}
+@keyframes shimmer{to{background-position:-200% 0;}}
+
+.foot{text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--txt-mute);padding:6px 0;opacity:.7;}
+.foot b{color:var(--accent-2);font-weight:500;}
+
+#toast{position:fixed;left:50%;bottom:26px;z-index:120;transform:translate(-50%,140%);
+  max-width:min(92vw,460px);padding:12px 20px;border-radius:99px;
+  background:rgba(10,12,22,.9);border:1px solid var(--stroke-hi);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 20px 50px -20px #000,0 0 30px -12px var(--accent);
+  font-size:12.5px;text-align:center;transition:transform .5s var(--ease-out),opacity .4s;
+  opacity:0;pointer-events:none;}
+#toast.show{transform:translate(-50%,0);opacity:1;}
+
+.modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:20px;
+  background:rgba(3,4,9,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  opacity:0;visibility:hidden;transition:opacity .35s var(--ease),visibility .35s;}
+.modal.open{opacity:1;visibility:visible;}
+.modal-card{width:min(460px,100%);padding:26px;transform:translateY(18px) scale(.97);
+  transition:transform .45s var(--ease-out);}
+.modal.open .modal-card{transform:none;}
+.modal-card h3{margin:0 0 8px;font-size:16px;letter-spacing:.12em;text-transform:uppercase;
+  background:linear-gradient(92deg,#fff,var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.modal-card p{margin:0 0 16px;font-size:12.5px;color:var(--txt-dim);line-height:1.65;}
+.modal-card a{color:var(--accent-2);text-decoration:none;border-bottom:1px dotted;}
+.modal-card input{width:100%;padding:12px 15px;border-radius:var(--r-md);
+  background:rgba(255,255,255,.045);border:1px solid var(--stroke);outline:none;
+  font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.04em;margin-bottom:16px;
+  transition:border-color .3s,box-shadow .3s;}
+.modal-card input:focus{border-color:color-mix(in srgb,var(--accent) 60%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.btn{padding:10px 20px;border-radius:99px;font-size:12px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;transition:all .26s var(--ease);}
+.btn.ghost{border:1px solid var(--stroke);color:var(--txt-dim);}
+.btn.ghost:hover{border-color:var(--stroke-hi);color:#fff;}
+.btn.primary{background:linear-gradient(120deg,var(--accent),var(--accent-2));color:#05060a;box-shadow:0 0 26px -8px var(--accent);}
+.btn.primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+
+/* ====== DEEP SPACE ====== */
+body.deep-space{background:#020306;}
+body.deep-space .aurora{opacity:0;}
+body.deep-space #starfield{opacity:1;}
+body.deep-space .grain{opacity:.055;}
+body.deep-space .glass{background:linear-gradient(160deg,rgba(255,255,255,.03),rgba(255,255,255,.006));
+  border-color:rgba(140,180,255,.1);
+  box-shadow:0 30px 80px -40px #000,inset 0 0 60px -30px var(--accent-2);}
+body.deep-space .video-shell{width:min(48vw,250px);aspect-ratio:1/1;border-radius:50%;
+  margin:6px auto 2px;border-color:rgba(140,200,255,.22);
+  box-shadow:0 0 0 1px rgba(140,200,255,.08),0 0 70px -12px var(--accent-2),inset 0 0 60px rgba(0,0,0,.95);}
+body.deep-space .video-shell::after{opacity:.25;}
+body.deep-space .grid{grid-template-columns:1fr;max-width:760px;margin:0 auto;width:100%;}
+body.deep-space .library-panel{display:none;}
+body.deep-space .mood-txt em{display:none;}
+body.deep-space .mood-txt strong{font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+body.deep-space .mood{padding:8px 13px;}
+body.deep-space .brand-text p{color:var(--accent-2);opacity:.85;}
+body.deep-space .viz-shell{height:104px;background:rgba(255,255,255,.012);}
+body.deep-space .topbar{background:linear-gradient(160deg,rgba(20,30,55,.35),rgba(255,255,255,.01));}
+body.deep-space .video-overlay .hint{display:none;}
+
+/* responsive */
+@media (max-width:1080px){
+  .grid{grid-template-columns:1fr;}
+  .library-panel{max-height:none;}
+  .track-list{max-height:340px;}
+}
+@media (max-width:860px){
+  .topbar{flex-wrap:wrap;gap:10px;padding:12px 14px;top:6px;}
+  .brand{order:1;}
+  .top-actions{order:2;margin-left:auto;}
+  .search{order:3;flex-basis:100%;}
+  .mood-label{display:none;}
+  .app{padding:12px 12px 34px;gap:13px;}
+}
+@media (max-width:600px){
+  body{font-size:14px;}
+  .brand-text h1{font-size:14px;letter-spacing:.24em;}
+  .brand-text p{font-size:8px;}
+  .player-panel{padding:13px;gap:12px;}
+  .viz-shell{height:104px;}
+  .ctrl{width:38px;height:38px;}
+  .ctrl.play{width:48px;height:48px;}
+  .volume-wrap{max-width:none;flex-basis:100%;order:5;}
+  .search-btn{padding:8px 14px;font-size:11px;}
+  .now-badge{width:38px;height:38px;}
+  .track-list{max-height:300px;}
+  .mood{padding:7px 12px 7px 9px;}
+  .mood-txt strong{font-size:11.5px;}
+  body.deep-space .video-shell{width:min(62vw,210px);}
+  .video-overlay .play-big{width:64px;height:64px;}
+  .video-overlay .play-big svg{width:24px;height:24px;}
+}
+@media (max-width:400px){
+  .mood-txt em{display:none;}
+  .search input{font-size:13px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg-layer" aria-hidden="true">
+  <div class="aurora">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+    <span class="blob b4"></span>
+  </div>
+  <canvas id="starfield"></canvas>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+</div>
+
+<div class="app">
+
+  <header class="topbar glass">
+    <div class="brand">
+      <div class="brand-mark"><span></span></div>
+      <div class="brand-text">
+        <h1>AURORA</h1>
+        <p id="brandSub">Neofuturistic Audio Station</p>
+      </div>
+    </div>
+
+    <form class="search" id="searchForm" role="search" autocomplete="off">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+      </svg>
+      <input id="searchInput" type="text" placeholder="Şarkı, sanatçı veya YouTube bağlantısı ara…" aria-label="Müzik ara" />
+      <button class="search-btn" type="submit">Tara</button>
+    </form>
+
+    <div class="top-actions">
+      <button class="icon-btn" id="apiKeyBtn" title="YouTube API anahtarı" aria-label="API anahtarı ayarları">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.5 12.5L20 3M17 6l2.5 2.5M14 9l2 2"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="deepSpaceBtn" title="Deep Space Modu" aria-label="Deep Space Modu">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>
+          <circle cx="12" cy="12" r="3.2"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="mood-core" aria-label="Ruh hali çekirdeği">
+    <span class="mood-label">Ruh Hali Çekirdeği</span>
+    <div class="moods" id="moods"></div>
+  </section>
+
+  <main class="grid">
+
+    <section class="panel player-panel glass" aria-label="Oynatıcı">
+
+      <div class="video-shell">
+        <div id="yt-player"></div>
+
+        <div class="video-overlay" id="videoOverlay" role="button" tabindex="0" aria-label="Müziği başlat">
+          <div class="play-big">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>
+          </div>
+          <span class="hint">Başlatmak için tıkla</span>
+        </div>
+
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+      </div>
+
+      <div class="now-meta">
+        <div class="now-badge" id="nowBadge">◈</div>
+        <div class="now-text">
+          <p class="now-title" id="nowTitle">Sistem hazır — başlatmak için tıkla</p>
+          <p class="now-artist" id="nowArtist">AURORA // STANDBY</p>
+        </div>
+        <span class="live-pill" id="livePill"><i></i>LIVE</span>
+      </div>
+
+      <div class="viz-shell">
+        <canvas id="viz"></canvas>
+        <span class="viz-tag">SPECTRUM // REALTIME</span>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" id="prevBtn" title="Önceki" aria-label="Önceki parça">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6zM20 5.6v12.8L9.5 12z"/></svg>
+        </button>
+        <button class="ctrl play" id="playBtn" title="Oynat / Durdur" aria-label="Oynat veya durdur">
+          <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>
+        </button>
+        <button class="ctrl" id="nextBtn" title="Sonraki" aria-label="Sonraki parça">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2zM4 5.6v12.8L14.5 12z"/></svg>
+        </button>
+
+        <div class="volume-wrap">
+          <svg id="volIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 5L6.5 9H3v6h3.5L11 19z"/><path d="M15.5 9.2a4 4 0 010 5.6"/><path d="M18 6.5a7.6 7.6 0 010 11"/>
+          </svg>
+          <input type="range" id="volume" min="0" max="100" value="72" aria-label="Ses seviyesi" />
+        </div>
+      </div>
+
+      <div class="progress-row">
+        <span class="time" id="timeCurrent">0:00</span>
+        <div class="progress" id="progress" role="slider" aria-label="Parça ilerlemesi" tabindex="0">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="time right" id="timeTotal">--:--</span>
+      </div>
+    </section>
+
+    <aside class="panel library-panel glass" aria-label="Kitaplık">
+      <div class="lib-head">
+        <h2 class="lib-title" id="libTitle">Kitaplık</h2>
+        <span class="lib-count" id="libCount">0 PARÇA</span>
+      </div>
+      <ul class="track-list" id="trackList"></ul>
+    </aside>
+
+  </main>
+
+  <footer class="foot">
+    AURORA <b>//</b> YouTube IFrame API <b>//</b> Neofuturistic Audio Interface
+  </footer>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-card glass">
+    <h3>YouTube Data API Anahtarı</h3>
+    <p>
+      Gerçek YouTube araması için bir <b>YouTube Data API v3</b> anahtarı gerekir.
+      <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">Google Cloud Console</a>
+      üzerinden ücretsiz oluşturabilirsin. Anahtar yalnızca tarayıcının
+      <code>localStorage</code>'ında saklanır.
+      <br><br>
+      Anahtar olmadan da platform çalışır: <b>Demo Modu</b> yerel kütüphaneyi filtreler.
+    </p>
+    <input id="apiKeyInput" type="password" placeholder="AIzaSy..." spellcheck="false" />
+    <div class="modal-actions">
+      <button class="btn ghost" id="apiKeyClear">Temizle</button>
+      <button class="btn primary" id="apiKeySave">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   AURORA — UYGULAMA MANTIĞI  (DÜZELTİLMİŞ SÜRÜM)
+   ========================================================================== */
+
+/* ---------- 1) VERİ ---------- */
+const MOODS = [
+  { id:'cyber', name:'Siber Savaş', desc:'AGGRESSIVE SYNTH', icon:'⚔',
+    accent:'#ff2d95', accent2:'#7c3aed',
+    query:'cyberpunk dark synthwave aggressive electro mix' },
+  { id:'deep', name:'Derin Uzay', desc:'AMBIENT DRONE', icon:'🌌',
+    accent:'#22d3ee', accent2:'#3b82f6',
+    query:'deep space ambient drone sci-fi atmospheric' },
+  { id:'night', name:'Gece Sürüşü', desc:'RETROWAVE', icon:'🏎',
+    accent:'#a855f7', accent2:'#22d3ee',
+    query:'night drive retrowave synthwave mix 80s' },
+  { id:'holo', name:'Holografik Huzur', desc:'LOFI CHILL', icon:'✧',
+    accent:'#7dffcf', accent2:'#22d3ee',
+    query:'lofi chillhop relaxing beats study music' }
+];
+
+/* DÜZELTME: 'yok' geçerli bir YouTube video ID'si değildi (11 karakter olmalı).
+   Bu yüzden oynatıcı hata veriyor ve sonsuz hata döngüsüne giriyordu. */
+const LIBRARY = [
+  { id:'jfKfPfyJRdk',
+    title:'Lofi Hip Hop Radio — Beats to Relax / Study to',
+    artist:'Lofi Girl',
+    mood:['holo','night'],
+    live:true }
+];
+
+/* ---------- 2) YARDIMCILAR ---------- */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const esc = (str = '') => String(str).replace(/[&<>"']/g, c => (
+  { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]
+));
+function fmtTime(sec){
+  sec = Math.max(0, Math.floor(sec || 0));
+  return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+}
+let toastTimer;
+function toast(msg){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3600);
+}
+function extractVideoId(str){
+  if (!str) return null;
+  const s = str.trim();
+  const m = s.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/|\/v\/)([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+  return null;
+}
+
+/* ---------- 3) DURUM ---------- */
+const State = {
+  player: null,
+  ready: false,
+  pendingTrack: null,
+  queue: [...LIBRARY],
+  index: -1,
+  current: null,
+  playing: false,
+  duration: 0,
+  isLive: false,
+  deepSpace: false,
+  mood: null,
+  apiKey: localStorage.getItem('aurora_yt_key') || '',
+  accentA: '#a855f7',
+  accentB: '#22d3ee'
+};
+
+/* DÜZELTME: hata döngüsü koruması */
+let errorStreak = 0;
+const MAX_ERROR_STREAK = 3;
+
+/* ---------- 4) YOUTUBE IFrame API ---------- */
+function loadYouTubeAPI(){
+  return new Promise((resolve, reject) => {
+    if (window.YT && window.YT.Player) return resolve();
+
+    let settled = false;
+    const finish = (fn, arg) => { if (!settled){ settled = true; fn(arg); } };
+
+    const timeout = setTimeout(() => {
+      finish(reject, new Error('YouTube API zaman aşımı'));
+    }, 15000);
+
+    /* Polling yedeği: callback kaçırılsa bile yakalar */
+    const poll = setInterval(() => {
+      if (window.YT && window.YT.Player){
+        clearInterval(poll);
+        clearTimeout(timeout);
+        finish(resolve);
+      }
+    }, 200);
+
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (typeof prev === 'function') { try { prev(); } catch(e){} }
+      clearInterval(poll);
+      clearTimeout(timeout);
+      finish(resolve);
+    };
+
+    if (!document.querySelector('script[src*="iframe_api"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      s.async = true;
+      s.onerror = () => {
+        clearInterval(poll);
+        clearTimeout(timeout);
+        finish(reject, new Error('YouTube API script yüklenemedi'));
+      };
+      document.head.appendChild(s);
+    }
+  });
+}
+
+function createPlayer(){
+  State.player = new YT.Player('yt-player', {
+    width: '100%',
+    height: '100%',
+    videoId: LIBRARY[0].id,
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      modestbranding: 1,
+      rel: 0,
+      playsinline: 1,
+      disablekb: 1,
+      fs: 0,
+      iv_load_policy: 3
+    },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange,
+      onError: onPlayerError
+    }
+  });
+}
+
+function onPlayerReady(){
+  State.ready = true;
+  try { State.player.setVolume(Number($('#volume').value)); } catch(e){}
+
+  if (State.pendingTrack){
+    const t = State.pendingTrack;
+    State.pendingTrack = null;
+    playTrack(t, State.queue);
+  } else {
+    State.current = LIBRARY[0];
+    State.index = 0;
+    updateNowPlaying();
+    renderQueue();
+    $('#videoOverlay').classList.remove('hide');
+  }
+}
+
+function onPlayerStateChange(e){
+  const S = YT.PlayerState;
+  State.playing = (e.data === S.PLAYING);
+  document.body.classList.toggle('is-playing', State.playing);
+  updatePlayIcon();
+
+  if (State.playing) errorStreak = 0;   /* DÜZELTME: başarılı oynatmada sayacı sıfırla */
+
+  const overlay = $('#videoOverlay');
+  if (State.playing){
+    overlay.classList.add('hide');
+  } else if (e.data === S.PAUSED || e.data === S.CUED || e.data === S.UNSTARTED){
+    overlay.classList.remove('hide');
+  }
+
+  if (e.data === S.PLAYING || e.data === S.CUED) refreshMeta();
+  if (e.data === S.ENDED) next();
+}
+
+function onPlayerError(e){
+  console.warn('[AURORA] YouTube player hatası:', e.data);
+  const map = {
+    2:'Geçersiz parametre', 5:'HTML5 oynatıcı hatası',
+    100:'Video bulunamadı', 101:'Gömülmesi yasak', 150:'Gömülmesi yasak'
+  };
+  const msg = map[e.data] || ('kod ' + e.data);
+
+  /* DÜZELTME: sonsuz hata döngüsünü engelle */
+  errorStreak++;
+  if (errorStreak > MAX_ERROR_STREAK){
+    toast('Parça oynatılamadı (' + msg + '). Lütfen başka bir parça seçin.');
+    errorStreak = 0;
+    return;
+  }
+
+  toast('Parça oynatılamadı (' + msg + '). Sıradakine geçiliyor…');
+  if (State.queue.length > 1) setTimeout(next, 900);
+}
+
+function refreshMeta(){
+  if (!State.player || !State.ready) return;
+  try {
+    const d = State.player.getDuration() || 0;
+    if (d > 0) State.duration = d;
+    State.isLive = (State.duration === 0 || State.duration > 36000);
+    $('#livePill').classList.toggle('show', State.isLive);
+    $('#progress').classList.toggle('live', State.isLive);
+    $('#timeTotal').textContent = State.isLive ? '∞' : fmtTime(State.duration);
+
+    const vd = State.player.getVideoData ? State.player.getVideoData() : null;
+    if (vd && vd.title && State.current && State.current.needsMeta){
+      State.current.title = vd.title;
+      State.current.needsMeta = false;
+      updateNowPlaying();
+      renderQueue();
+    }
+  } catch(err){}
+}
+
+/* ---------- 5) OYNATICI KONTROLLERİ ---------- */
+function playTrack(track, list){
+  if (!track) return;
+
+  if (list && Array.isArray(list)) State.queue = list;
+  if (!State.queue.some(t => t.id === track.id)) State.queue = [track, ...State.queue];
+
+  State.index = State.queue.findIndex(t => t.id === track.id);
+  State.current = track;
+
+  updateNowPlaying();
+  renderQueue();
+
+  if (State.player && State.ready){
+    try {
+      State.player.loadVideoById(track.id);
+    } catch(e){
+      console.warn('[AURORA] loadVideoById hatası:', e);
+    }
+
+    /* Tarayıcı autoplay'i engellemiş olabilir → tekrar dene */
+    let attempts = 0;
+    const ensurePlaying = () => {
+      attempts++;
+      if (!State.player || !State.ready) return;
+      try {
+        const st = State.player.getPlayerState();
+        if (st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING){
+          State.player.playVideo();
+        }
+        if (attempts < 5 && State.player.getPlayerState() !== YT.PlayerState.PLAYING){
+          setTimeout(ensurePlaying, 400);
+        }
+      } catch(e){}
+    };
+    setTimeout(ensurePlaying, 250);
+
+    State.duration = 0;
+    State.isLive = false;
+    $('#livePill').classList.remove('show');
+    $('#progress').classList.remove('live');
+    $('#timeTotal').textContent = '--:--';
+    setTimeout(refreshMeta, 900);
+  } else {
+    State.pendingTrack = track;
+  }
+}
+
+function togglePlay(){
+  if (!State.player || !State.ready){
+    const t = State.current || State.queue[0];
+    if (t) playTrack(t, State.queue);
+    else toast('Oynatıcı henüz hazır değil…');
+    return;
+  }
+  try {
+    const s = State.player.getPlayerState();
+    if (s === YT.PlayerState.PLAYING){
+      State.player.pauseVideo();
+    } else {
+      State.player.playVideo();
+    }
+  } catch(e){}
+}
+
+function next(){
+  if (!State.queue.length) return;
+  const i = (State.index + 1 + State.queue.length) % State.queue.length;
+  playTrack(State.queue[i], State.queue);
+}
+
+function prev(){
+  if (!State.queue.length) return;
+  try {
+    if (State.player && State.ready && !State.isLive && State.player.getCurrentTime() > 3){
+      State.player.seekTo(0, true);
+      return;
+    }
+  } catch(e){}
+  const i = (State.index - 1 + State.queue.length) % State.queue.length;
+  playTrack(State.queue[i], State.queue);
+}
+
+function seekBy(sec){
+  if (!State.player || !State.ready || State.isLive) return;
+  try {
+    State.player.seekTo(Math.max(0, State.player.getCurrentTime() + sec), true);
+  } catch(e){}
+}
+
+function updateNowPlaying(){
+  const t = State.current;
+  if (!t) return;
+  $('#nowTitle').textContent  = t.title  || 'Bilinmeyen parça';
+  $('#nowArtist').textContent = (t.artist || 'YouTube') + ' // AURORA';
+  $('#nowBadge').textContent  = State.playing ? '◉' : '◈';
+  document.title = `${t.title} — AURORA`;
+}
+
+function updatePlayIcon(){
+  const icon = $('#playIcon');
+  if (State.playing){
+    icon.innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/>';
+    $('#nowBadge').textContent = '◉';
+  } else {
+    icon.innerHTML = '<path d="M7 4.5l13 7.5-13 7.5z"/>';
+    $('#nowBadge').textContent = '◈';
+  }
+}
+
+/* ---------- 6) ARAMA ---------- */
+async function doSearch(rawQuery){
+  const q = (rawQuery || '').trim();
+  if (!q) return;
+
+  const directId = extractVideoId(q);
+  if (directId){
+    const track = { id: directId, title: 'YouTube Bağlantısı', artist: 'Doğrudan Akış', needsMeta: true };
+    playTrack(track, [track]);
+    toast('Bağlantı algılandı, oynatılıyor…');
+    return;
+  }
+
+  if (!State.apiKey){
+    const needle = q.toLowerCase();
+    let res = LIBRARY.filter(t => (t.title + ' ' + t.artist).toLowerCase().includes(needle));
+    if (!res.length) res = LIBRARY;
+    setLibTitle('Demo Kütüphanesi');
+    renderQueue(res);
+    toast('Demo Modu: gerçek arama için 🔑 ikonundan API anahtarı ekleyin.');
+    return;
+  }
+
+  setLibTitle('Aranıyor…');
+  renderSkeleton();
+
+  try {
+    const url = 'https://www.googleapis.com/youtube/v3/search'
+      + '?part=snippet&type=video&videoCategoryId=10&maxResults=18'
+      + '&q=' + encodeURIComponent(q)
+      + '&key=' + encodeURIComponent(State.apiKey);
+
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || 'API hatası');
+
+    const items = (data.items || [])
+      .filter(it => it.id && it.id.videoId)
+      .map(it => ({
+        id: it.id.videoId,
+        title: it.snippet.title,
+        artist: it.snippet.channelTitle,
+        thumb: it.snippet.thumbnails?.medium?.url || it.snippet.thumbnails?.default?.url
+      }));
+
+    setLibTitle('Arama Sonuçları');
+    renderQueue(items);
+    toast(items.length + ' sonuç bulundu.');
+  } catch (err){
+    console.error(err);
+    setLibTitle('Kitaplık');
+    renderQueue(LIBRARY);
+    toast('Arama hatası: ' + err.message);
+  }
+}
+
+function setLibTitle(txt){ $('#libTitle').textContent = txt; }
+
+/* ---------- 7) LİSTE RENDER ---------- */
+function renderQueue(list){
+  const ul = $('#trackList');
+  const items = list || State.queue;
+
+  $('#libCount').textContent = items.length + ' PARÇA';
+
+  if (!items.length){
+    ul.innerHTML = '<li class="empty">SONUÇ YOK // YENİ BİR TARAMA YAP</li>';
+    return;
+  }
+
+  ul.innerHTML = items.map(t => {
+    const active = State.current && State.current.id === t.id;
+    const thumb = t.thumb || `https://i.ytimg.com/vi/${t.id}/mqdefault.jpg`;
+    return `
+      <li class="track${active ? ' active' : ''}" data-id="${esc(t.id)}" role="button" tabindex="0">
+        <div class="thumb">
+          <img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.style.opacity=0" />
+          <span class="play-ico">▶</span>
+        </div>
+        <div class="track-meta">
+          <p class="track-name">${esc(t.title)}</p>
+          <p class="track-artist">${esc(t.artist || 'YouTube')}</p>
+        </div>
+        ${t.live ? '<span class="track-badge live">LIVE</span>' : ''}
+      </li>`;
+  }).join('');
+
+  $$('.track', ul).forEach(li => {
+    const activate = () => {
+      const t = items.find(x => x.id === li.dataset.id);
+      if (t) playTrack(t, items);
+    };
+    li.addEventListener('click', activate);
+    li.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); activate(); }
+    });
+  });
+}
+
+function renderSkeleton(){
+  $('#trackList').innerHTML = Array.from({ length: 6 })
+    .map(() => '<li class="skeleton"></li>').join('');
+}
+
+/* ---------- 8) CANVAS GÖRSELLEŞTİRİCİ ---------- */
+const vizCanvas = $('#viz');
+const vctx = vizCanvas.getContext('2d');
+let vw = 0, vh = 0, vDpr = 1;
+const BANDS = 72;
+const bands = new Float32Array(BANDS);
+let vizTime = 0;
+let pulse = 0;
+
+function resizeViz(){
+  const rect = vizCanvas.getBoundingClientRect();
+  vDpr = Math.min(window.devicePixelRatio || 1, 2);
+  vw = Math.max(1, rect.width);
+  vh = Math.max(1, rect.height);
+  vizCanvas.width  = Math.round(vw * vDpr);
+  vizCanvas.height = Math.round(vh * vDpr);
+  vctx.setTransform(vDpr, 0, 0, vDpr, 0, 0);
+}
+
+function drawViz(dt){
+  if (!vw || !vh) return;
+  vizTime += dt;
+  const playing = State.playing;
+  const t = vizTime;
+
+  const bpm = 96;
+  const phase = (t * bpm / 60) % 1;
+  const beat = Math.pow(1 - phase, 4);
+  pulse += ((playing ? beat : 0) - pulse) * 0.28;
+
+  for (let i = 0; i < BANDS; i++){
+    let target;
+    if (playing){
+      const n =
+        Math.sin(t * 2.30 + i * 0.41) * 0.45 +
+        Math.sin(t * 1.17 + i * 0.19) * 0.35 +
+        Math.sin(t * 4.10 + i * 0.87) * 0.20;
+      const env = Math.pow(1 - i / (BANDS * 1.25), 0.75);
+      target = Math.max(0.03, Math.abs(n) * env * (0.72 + 0.55 * pulse));
+    } else {
+      target = 0.026 + 0.018 * Math.sin(t * 0.9 + i * 0.3);
+    }
+    bands[i] += (target - bands[i]) * (playing ? 0.30 : 0.06);
+  }
+
+  vctx.clearRect(0, 0, vw, vh);
+  const cy = vh / 2;
+  const maxH = vh * 0.40;
+  const gap = Math.max(2, vw * 0.0035);
+  const bw = Math.max(1.5, (vw - gap * (BANDS - 1)) / BANDS);
+
+  vctx.strokeStyle = 'rgba(255,255,255,.035)';
+  vctx.lineWidth = 1;
+  for (let g = 0; g <= 4; g++){
+    const y = Math.round((vh / 4) * g) + 0.5;
+    vctx.beginPath(); vctx.moveTo(0, y); vctx.lineTo(vw, y); vctx.stroke();
+  }
+
+  const grad = vctx.createLinearGradient(0, 0, 0, vh);
+  grad.addColorStop(0,   State.accentB);
+  grad.addColorStop(0.5, State.accentA);
+  grad.addColorStop(1,   State.accentB);
+
+  const path = new Path2D();
+  const roundOK = typeof path.roundRect === 'function';
+  for (let i = 0; i < BANDS; i++){
+    const h = Math.max(1.5, bands[i] * maxH);
+    const x = i * (bw + gap);
+    const y = cy - h;
+    if (roundOK) path.roundRect(x, y, bw, h * 2, bw / 2);
+    else path.rect(x, y, bw, h * 2);
+  }
+  vctx.save();
+  vctx.fillStyle = grad;
+  vctx.shadowColor = State.accentA;
+  vctx.shadowBlur = 16;
+  vctx.fill(path);
+  vctx.restore();
+
+  vctx.save();
+  vctx.beginPath();
+  for (let i = 0; i < BANDS; i++){
+    const x = i * (bw + gap) + bw / 2;
+    const y = cy - bands[i] * maxH;
+    i ? vctx.lineTo(x, y) : vctx.moveTo(x, y);
+  }
+  vctx.strokeStyle = 'rgba(255,255,255,.72)';
+  vctx.lineWidth = 1.4;
+  vctx.shadowColor = State.accentB;
+  vctx.shadowBlur = 14;
+  vctx.stroke();
+  vctx.restore();
+
+  vctx.save();
+  vctx.globalAlpha = 0.28;
+  vctx.beginPath();
+  for (let i = 0; i < BANDS; i++){
+    const x = i * (bw + gap) + bw / 2;
+    const y = cy + bands[i] * maxH;
+    i ? vctx.lineTo(x, y) : vctx.moveTo(x, y);
+  }
+  vctx.strokeStyle = State.accentB;
+  vctx.lineWidth = 1;
+  vctx.stroke();
+  vctx.restore();
+
+  vctx.save();
+  vctx.globalAlpha = 0.18 + pulse * 0.5;
+  vctx.strokeStyle = '#fff';
+  vctx.lineWidth = 1;
+  vctx.beginPath(); vctx.moveTo(0, cy + 0.5); vctx.lineTo(vw, cy + 0.5); vctx.stroke();
+  vctx.restore();
+}
+
+/* ---------- 9) STARFIELD ---------- */
+const sfCanvas = $('#starfield');
+const sfCtx = sfCanvas.getContext('2d');
+let sw = 0, sh = 0;
+const stars = [];
+
+function newStar(spread){
+  return { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1,
+           z: spread ? Math.random() * 0.98 + 0.02 : 1 };
+}
+function initStars(){
+  stars.length = 0;
+  const count = window.innerWidth < 700 ? 130 : 260;
+  for (let i = 0; i < count; i++) stars.push(newStar(true));
+}
+function resizeStarfield(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  sw = window.innerWidth; sh = window.innerHeight;
+  sfCanvas.width  = Math.round(sw * dpr);
+  sfCanvas.height = Math.round(sh * dpr);
+  sfCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function drawStars(dt){
+  sfCtx.clearRect(0, 0, sw, sh);
+  const cx = sw / 2, cy = sh / 2;
+  const speed = 0.20;
+  for (let i = 0; i < stars.length; i++){
+    const s = stars[i];
+    s.z -= speed * dt;
+    if (s.z <= 0.02){ stars[i] = newStar(false); continue; }
+    const k = 1 / s.z;
+    const x = cx + s.x * k * cx * 0.55;
+    const y = cy + s.y * k * cy * 0.55;
+    if (x < -50 || x > sw + 50 || y < -50 || y > sh + 50) continue;
+    const depth = 1 - s.z;
+    const size  = Math.max(0.4, depth * 2.4);
+    const alpha = Math.min(1, depth * 1.5);
+    const tint = i % 7 === 0 ? '190,220,255' : (i % 11 === 0 ? '210,180,255' : '230,240,255');
+    sfCtx.fillStyle = `rgba(${tint},${alpha})`;
+    sfCtx.fillRect(x, y, size, size);
+  }
+}
+
+/* ---------- 10) ANA DÖNGÜ ---------- */
+let lastT = performance.now();
+let sfWasActive = false;
+function loop(now){
+  const dt = Math.min((now - lastT) / 1000, 0.05);
+  lastT = now;
+  drawViz(dt);
+  if (State.deepSpace){ drawStars(dt); sfWasActive = true; }
+  else if (sfWasActive){ sfCtx.clearRect(0, 0, sw, sh); sfWasActive = false; }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- 11) UI BAĞLAMA ---------- */
+function bindUI(){
+
+  /* Arama */
+  $('#searchForm').addEventListener('submit', e => {
+    e.preventDefault();
+    doSearch($('#searchInput').value);
+  });
+
+  /* Oynatma */
+  $('#playBtn').addEventListener('click', togglePlay);
+  $('#nextBtn').addEventListener('click', next);
+  $('#prevBtn').addEventListener('click', prev);
+
+  /* Video overlay → tıklayınca çal */
+  const overlay = $('#videoOverlay');
+  const startPlayback = () => {
+    if (State.playing){
+      togglePlay();
+    } else if (State.player && State.ready){
+      try { State.player.playVideo(); } catch(e){}
+    } else if (State.current){
+      playTrack(State.current, State.queue);
+    } else if (State.queue.length){
+      playTrack(State.queue[0], State.queue);
+    }
+  };
+  overlay.addEventListener('click', startPlayback);
+  overlay.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      e.stopPropagation();   /* DÜZELTME: document Space handler ile çift tetiklemeyi önle */
+      startPlayback();
+    }
+  });
+
+  /* Ses */
+  const vol = $('#volume');
+  const volIcon = $('#volIcon');
+  function updateVolUI(){
+    const v = Number(vol.value);
+    vol.style.backgroundSize = v + '% 100%';
+    if (v === 0){
+      volIcon.innerHTML = '<path d="M11 5L6.5 9H3v6h3.5L11 19z"/><path d="M16 10l4 4M20 10l-4 4"/>';
+    } else if (v < 45){
+      volIcon.innerHTML = '<path d="M11 5L6.5 9H3v6h3.5L11 19z"/><path d="M15.5 9.2a4 4 0 010 5.6"/>';
+    } else {
+      volIcon.innerHTML = '<path d="M11 5L6.5 9H3v6h3.5L11 19z"/><path d="M15.5 9.2a4 4 0 010 5.6"/><path d="M18 6.5a7.6 7.6 0 010 11"/>';
+    }
+  }
+  vol.addEventListener('input', () => {
+    if (State.player && State.ready){
+      try { State.player.setVolume(Number(vol.value)); } catch(e){}
+    }
+    updateVolUI();
+  });
+  updateVolUI();
+
+  /* İlerleme */
+  const prog = $('#progress');
+  prog.addEventListener('click', e => {
+    if (!State.player || !State.ready || State.isLive || !State.duration) return;
+    const rect = prog.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    try { State.player.seekTo(ratio * State.duration, true); } catch(err){}
+  });
+  prog.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight'){ e.preventDefault(); seekBy(5); }
+    if (e.key === 'ArrowLeft'){ e.preventDefault(); seekBy(-5); }
+  });
+
+  /* Mood */
+  $('#moods').addEventListener('click', e => {
+    const btn = e.target.closest('.mood');
+    if (btn) applyMood(btn.dataset.mood);
+  });
+
+  /* Deep Space */
+  $('#deepSpaceBtn').addEventListener('click', () => {
+    State.deepSpace = !State.deepSpace;
+    document.body.classList.toggle('deep-space', State.deepSpace);
+    $('#deepSpaceBtn').classList.toggle('on', State.deepSpace);
+    $('#brandSub').textContent = State.deepSpace
+      ? 'Deep Space // Cockpit Mode'
+      : 'Neofuturistic Audio Station';
+    toast(State.deepSpace ? '🌌 Deep Space Modu aktif' : 'Aurora Modu geri yüklendi');
+  });
+
+  /* API Anahtarı Modalı */
+  const modal = $('#modal');
+  const keyInput = $('#apiKeyInput');
+  const closeModal = () => {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  $('#apiKeyBtn').addEventListener('click', () => {
+    keyInput.value = State.apiKey;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    setTimeout(() => keyInput.focus(), 120);
+  });
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  $('#apiKeySave').addEventListener('click', () => {
+    const k = keyInput.value.trim();
+    if (k){
+      State.apiKey = k;
+      localStorage.setItem('aurora_yt_key', k);
+      toast('API anahtarı kaydedildi — gerçek arama aktif.');
+    } else {
+      State.apiKey = '';
+      localStorage.removeItem('aurora_yt_key');
+      toast('Anahtar boş — Demo Modu aktif.');
+    }
+    closeModal();
+  });
+  $('#apiKeyClear').addEventListener('click', () => {
+    State.apiKey = '';
+    localStorage.removeItem('aurora_yt_key');
+    keyInput.value = '';
+    toast('API anahtarı temizlendi.');
+    closeModal();
+  });
+
+  /* Klavye */
+  document.addEventListener('keydown', e => {
+    if (e.target && e.target.matches && e.target.matches('input, textarea')) return;
+    if (e.code === 'Space'){ e.preventDefault(); togglePlay(); }
+    if (e.code === 'ArrowRight') seekBy(5);
+    if (e.code === 'ArrowLeft')  seekBy(-5);
+    if (e.key === 'n') next();
+    if (e.key === 'p') prev();
+    if (e.key === 'Escape') closeModal();
+  });
+
+  /* Resize */
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      resizeViz();
+      resizeStarfield();
+      initStars();
+    }, 120);
+  });
+}
+
+/* ---------- 12) MOOD CORE ---------- */
+function renderMoodButtons(){
+  $('#moods').innerHTML = MOODS.map(m => `
+    <button class="mood" data-mood="${m.id}" style="--m:${m.accent}" aria-label="${esc(m.name)} modu">
+      <span class="mood-ico">${m.icon}</span>
+      <span class="mood-txt">
+        <strong>${esc(m.name)}</strong>
+        <em>${esc(m.desc)}</em>
+      </span>
+    </button>
+  `).join('');
+}
+
+function applyMood(moodId){
+  const mood = MOODS.find(m => m.id === moodId);
+  if (!mood) return;
+  State.mood = mood.id;
+  const root = document.documentElement;
+  root.style.setProperty('--accent', mood.accent);
+  root.style.setProperty('--accent-2', mood.accent2);
+  State.accentA = mood.accent;
+  State.accentB = mood.accent2;
+  $$('.mood').forEach(b => b.classList.toggle('active', b.dataset.mood === moodId));
+
+  if (State.apiKey){
+    setLibTitle(mood.name);
+    doSearch(mood.query);
+    toast(`${mood.icon} ${mood.name} modu — YouTube taranıyor…`);
+  } else {
+    const list = LIBRARY.filter(t => t.mood.includes(mood.id));
+    setLibTitle(mood.name);
+    renderQueue(list.length ? list : LIBRARY);
+    toast(`${mood.icon} ${mood.name} modu — demo kütüphanesi`);
+  }
+}
+
+/* ---------- 13) BAŞLATMA ---------- */
+async function boot(){
+  resizeViz();
+  resizeStarfield();
+  initStars();
+  renderMoodButtons();
+
+  setLibTitle('Kitaplık');
+  renderQueue(LIBRARY);
+
+  bindUI();
+  requestAnimationFrame(loop);
+
+  /* İlerleme + meta güncelleyici
+     DÜZELTME: duration artık periyodik olarak senkronize ediliyor */
+  let metaTick = 0;
+  setInterval(() => {
+    if (!State.player || !State.ready) return;
+    metaTick++;
+    if (metaTick % 8 === 0) refreshMeta();   /* ~2 sn'de bir */
+    try {
+      const cur = State.player.getCurrentTime() || 0;
+      if (State.isLive){
+        $('#timeCurrent').textContent = 'LIVE';
+        $('#progressFill').style.width = '100%';
+      } else if (State.duration > 0){
+        const ratio = Math.min(1, cur / State.duration);
+        $('#progressFill').style.width = (ratio * 100).toFixed(2) + '%';
+        $('#timeCurrent').textContent = fmtTime(cur);
+      }
+    } catch(e){}
+  }, 250);
+
+  /* YT API yükle */
+  try {
+    await loadYouTubeAPI();
+    createPlayer();
+  } catch(err){
+    console.error(err);
+    toast('YouTube API yüklenemedi: ' + err.message + ' — İnternet bağlantınızı kontrol edin.');
+  }
+
+  /* Başlangıç teması */
+  applyMoodInitial();
+
+  /* Bilgilendirme */
+  if (!State.apiKey){
+    setTimeout(() => {
+      toast('▶ Oynatmaya başlamak için video üzerindeki play butonuna tıklayın.');
+    }, 1600);
+  }
+}
+
+function applyMoodInitial(){
+  const mood = MOODS.find(m => m.id === 'night');
+  State.mood = mood.id;
+  const root = document.documentElement;
+  root.style.setProperty('--accent', mood.accent);
+  root.style.setProperty('--accent-2', mood.accent2);
+  State.accentA = mood.accent;
+  State.accentB = mood.accent2;
+  $$('.mood').forEach(b => b.classList.toggle('active', b.dataset.mood === mood.id));
+}
+
+boot();
+</script>
+</body>
+</html>
