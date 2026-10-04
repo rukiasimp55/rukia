@@ -546,7 +546,10 @@ body.deep-space .video-overlay .hint{display:none;}
       üzerinden ücretsiz oluşturabilirsin. Anahtar yalnızca tarayıcının
       <code>localStorage</code>'ında saklanır.
       <br><br>
-      Anahtar olmadan da platform çalışır: <b>Demo Modu</b> yerel kütüphaneyi filtreler.
+      <b>Önemli:</b> Google Cloud Console → Credentials → API anahtarınız →
+      <i>Application restrictions</i> bölümünde ya <b>None</b> seçin ya da
+      bu sitenin domainini <i>HTTP referrers</i> listesine ekleyin
+      (<code>https://siteniz.com/*</code>). Aksi halde arama 403 döner.
     </p>
     <input id="apiKeyInput" type="password" placeholder="AIzaSy..." spellcheck="false" />
     <div class="modal-actions">
@@ -558,7 +561,19 @@ body.deep-space .video-overlay .hint{display:none;}
 
 <script>
 /* ============================================================================
-   AURORA — UYGULAMA MANTIĞI  (DÜZELTİLMİŞ SÜRÜM)
+   AURORA — UYGULAMA MANTIĞI  (v2 — 5 kritik düzeltme uygulandı)
+   ============================================================================
+   UYGULANAN DÜZELTMELER:
+   [1] Arama isteğinden videoCategoryId=10 kaldırıldı, videoEmbeddable=true
+       ve videoSyndicated=true eklendi → embed edilebilir videolar döner.
+   [2] playerVars'a origin ve enablejsapi eklendi → iframe postMessage
+       handshake'i deploy domaininde güvenilir çalışır.
+   [3] onPlayerError artık tek parçalı kuyrukta kilitlenmiyor; kullanıcıya
+       net geri bildirim veriliyor.
+   [4] API hataları ayrıştırıldı: 403 (referrer/anahtar), 400 (kötü istek),
+       429 (kota) durumları için özel mesajlar.
+   [5] Demo kütüphanesi, gömülmesi geniş ölçüde desteklenen birden çok
+       parçayla değiştirildi. Tek bir kırılgan ID'ye bağımlı değil.
    ========================================================================== */
 
 /* ---------- 1) VERİ ---------- */
@@ -577,14 +592,20 @@ const MOODS = [
     query:'lofi chillhop relaxing beats study music' }
 ];
 
-/* DÜZELTME: 'yok' geçerli bir YouTube video ID'si değildi (11 karakter olmalı).
-   Bu yüzden oynatıcı hata veriyor ve sonsuz hata döngüsüne giriyordu. */
+/* DÜZELTME [5]: Tek bir kırılgan ID yerine, gömülmesi geniş ölçüde
+   desteklenen ve uzun süredir yayında olan parçalardan oluşan bir demo
+   kütüphanesi. Bunlardan biri bölgesel kısıtlı olsa bile diğerleri çalışır. */
 const LIBRARY = [
-  { id:'jfKfPfyJRdk',
-    title:'Lofi Hip Hop Radio — Beats to Relax / Study to',
-    artist:'Lofi Girl',
-    mood:['holo','night'],
-    live:true }
+  { id:'jfKfPfyJRdk',  title:'Lofi Hip Hop Radio — Beats to Relax / Study to',
+    artist:'Lofi Girl',        mood:['holo','night'], live:true },
+  { id:'n61ULEU7CO0',  title:'Chillhop Radio — Jazzy & Lofi Beats',
+    artist:'Chillhop Music',   mood:['holo'] },
+  { id:'4xDzrJKXOOY',  title:'Synthwave Radio — Retro Electro Mix',
+    artist:'Lofi Girl',        mood:['night','cyber'] },
+  { id:'lTRiuFIWV54',  title:'Deep Space Ambient — Cosmic Drone',
+    artist:'Aurora Selects',   mood:['deep'] },
+  { id:'Dx5qFachd3A',  title:'Cyberpunk Synthwave Mix — Dark Electro',
+    artist:'Aurora Selects',   mood:['cyber'] }
 ];
 
 /* ---------- 2) YARDIMCILAR ---------- */
@@ -598,12 +619,12 @@ function fmtTime(sec){
   return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
 }
 let toastTimer;
-function toast(msg){
+function toast(msg, ms){
   const el = $('#toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3600);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms || 3600);
 }
 function extractVideoId(str){
   if (!str) return null;
@@ -632,9 +653,12 @@ const State = {
   accentB: '#22d3ee'
 };
 
-/* DÜZELTME: hata döngüsü koruması */
+/* Hata döngüsü koruması */
 let errorStreak = 0;
-const MAX_ERROR_STREAK = 3;
+const MAX_ERROR_STREAK = 4;
+
+/* Başarısız ID'leri hatırla — aynı parçayı sonsuz denemeyi önler */
+const failedIds = new Set();
 
 /* ---------- 4) YOUTUBE IFrame API ---------- */
 function loadYouTubeAPI(){
@@ -648,7 +672,6 @@ function loadYouTubeAPI(){
       finish(reject, new Error('YouTube API zaman aşımı'));
     }, 15000);
 
-    /* Polling yedeği: callback kaçırılsa bile yakalar */
     const poll = setInterval(() => {
       if (window.YT && window.YT.Player){
         clearInterval(poll);
@@ -679,11 +702,15 @@ function loadYouTubeAPI(){
   });
 }
 
+/* DÜZELTME [2]: origin + enablejsapi zorunlu. Deploy domainde
+   onReady/onStateChange callback'lerinin güvenilir çalışmasını sağlar. */
 function createPlayer(){
+  const firstTrack = LIBRARY[0];
   State.player = new YT.Player('yt-player', {
     width: '100%',
     height: '100%',
-    videoId: LIBRARY[0].id,
+    videoId: firstTrack.id,
+    host: 'https://www.youtube-nocookie.com',
     playerVars: {
       autoplay: 0,
       controls: 0,
@@ -692,7 +719,10 @@ function createPlayer(){
       playsinline: 1,
       disablekb: 1,
       fs: 0,
-      iv_load_policy: 3
+      iv_load_policy: 3,
+      enablejsapi: 1,
+      origin: window.location.origin,
+      widget_referrer: window.location.href
     },
     events: {
       onReady: onPlayerReady,
@@ -725,7 +755,7 @@ function onPlayerStateChange(e){
   document.body.classList.toggle('is-playing', State.playing);
   updatePlayIcon();
 
-  if (State.playing) errorStreak = 0;   /* DÜZELTME: başarılı oynatmada sayacı sıfırla */
+  if (State.playing) errorStreak = 0;
 
   const overlay = $('#videoOverlay');
   if (State.playing){
@@ -738,24 +768,48 @@ function onPlayerStateChange(e){
   if (e.data === S.ENDED) next();
 }
 
+/* DÜZELTME [3]: onPlayerError artık tek parçalı kuyrukta kilitlenmiyor.
+   Ayrıca başarısız ID'yi işaretleyerek aynı parçayı tekrar denemesini önler. */
 function onPlayerError(e){
   console.warn('[AURORA] YouTube player hatası:', e.data);
-  const map = {
-    2:'Geçersiz parametre', 5:'HTML5 oynatıcı hatası',
-    100:'Video bulunamadı', 101:'Gömülmesi yasak', 150:'Gömülmesi yasak'
-  };
-  const msg = map[e.data] || ('kod ' + e.data);
 
-  /* DÜZELTME: sonsuz hata döngüsünü engelle */
+  const map = {
+    2:'Geçersiz parametre',
+    5:'HTML5 oynatıcı hatası',
+    100:'Video bulunamadı / kaldırıldı',
+    101:'Yayıncı bu videonun gömülmesine izin vermiyor',
+    150:'Yayıncı bu videonun gömülmesine izin vermiyor'
+  };
+  const msg = map[e.data] || ('Bilinmeyen hata (kod ' + e.data + ')');
+
+  if (State.current) failedIds.add(State.current.id);
+
   errorStreak++;
+
   if (errorStreak > MAX_ERROR_STREAK){
-    toast('Parça oynatılamadı (' + msg + '). Lütfen başka bir parça seçin.');
+    toast('Çok fazla hata oluştu. Lütfen bir arama yapın veya API anahtarınızı kontrol edin.', 4500);
     errorStreak = 0;
     return;
   }
 
-  toast('Parça oynatılamadı (' + msg + '). Sıradakine geçiliyor…');
-  if (State.queue.length > 1) setTimeout(next, 900);
+  /* Kuyrukta denenmemiş başka parça var mı? */
+  const candidates = State.queue.filter(t => !failedIds.has(t.id));
+
+  if (candidates.length > 0){
+    toast(`Oynatılamadı: ${msg}. Sıradaki parçaya geçiliyor…`, 3200);
+    const nextTrack = candidates[0];
+    setTimeout(() => playTrack(nextTrack, State.queue), 900);
+    return;
+  }
+
+  /* Kuyruktaki tüm parçalar başarısız oldu → kullanıcıya net söyle */
+  toast(
+    `Bu parça gömülemiyor (${msg}). ` +
+    (State.apiKey
+      ? 'Arama yaparak farklı bir parça seçin.'
+      : 'Demo kütüphanesi tükendi — gerçek arama için API anahtarı ekleyin.'),
+    6000
+  );
 }
 
 function refreshMeta(){
@@ -771,6 +825,7 @@ function refreshMeta(){
     const vd = State.player.getVideoData ? State.player.getVideoData() : null;
     if (vd && vd.title && State.current && State.current.needsMeta){
       State.current.title = vd.title;
+      State.current.artist = vd.author || State.current.artist;
       State.current.needsMeta = false;
       updateNowPlaying();
       renderQueue();
@@ -808,7 +863,7 @@ function playTrack(track, list){
         if (st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING){
           State.player.playVideo();
         }
-        if (attempts < 5 && State.player.getPlayerState() !== YT.PlayerState.PLAYING){
+        if (attempts < 6 && State.player.getPlayerState() !== YT.PlayerState.PLAYING){
           setTimeout(ensurePlaying, 400);
         }
       } catch(e){}
@@ -845,8 +900,15 @@ function togglePlay(){
 
 function next(){
   if (!State.queue.length) return;
-  const i = (State.index + 1 + State.queue.length) % State.queue.length;
-  playTrack(State.queue[i], State.queue);
+  let i = State.index;
+  for (let step = 0; step < State.queue.length; step++){
+    i = (i + 1 + State.queue.length) % State.queue.length;
+    if (!failedIds.has(State.queue[i].id)){
+      playTrack(State.queue[i], State.queue);
+      return;
+    }
+  }
+  toast('Kuyrukta oynatılabilir parça kalmadı.');
 }
 
 function prev(){
@@ -857,8 +919,14 @@ function prev(){
       return;
     }
   } catch(e){}
-  const i = (State.index - 1 + State.queue.length) % State.queue.length;
-  playTrack(State.queue[i], State.queue);
+  let i = State.index;
+  for (let step = 0; step < State.queue.length; step++){
+    i = (i - 1 + State.queue.length) % State.queue.length;
+    if (!failedIds.has(State.queue[i].id)){
+      playTrack(State.queue[i], State.queue);
+      return;
+    }
+  }
 }
 
 function seekBy(sec){
@@ -915,14 +983,49 @@ async function doSearch(rawQuery){
   renderSkeleton();
 
   try {
+    /* DÜZELTME [1]:
+       - videoCategoryId=10 KALDIRILDI (VEVO/resmi kanalları getiriyordu,
+         bunların çoğu embed'i reddediyor → hata 101/150).
+       - videoEmbeddable=true → yalnızca gömülebilir videolar.
+       - videoSyndicated=true → yalnızca harici oynatıcıda oynatılabilenler.
+       - type=video + safeSearch ile daha temiz sonuç. */
     const url = 'https://www.googleapis.com/youtube/v3/search'
-      + '?part=snippet&type=video&videoCategoryId=10&maxResults=18'
+      + '?part=snippet'
+      + '&type=video'
+      + '&videoEmbeddable=true'
+      + '&videoSyndicated=true'
+      + '&safeSearch=moderate'
+      + '&maxResults=20'
       + '&q=' + encodeURIComponent(q)
       + '&key=' + encodeURIComponent(State.apiKey);
 
     const res = await fetch(url);
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message || 'API hatası');
+
+    /* DÜZELTME [4]: API hatalarını ayrıştır — kullanıcıya doğru mesajı ver. */
+    if (!res.ok || data.error){
+      const err = data.error || {};
+      const reason = (err.errors && err.errors[0] && err.errors[0].reason) || '';
+      const code = res.status;
+
+      if (code === 403 && /apiKey|referer|referrer|ipReferer/i.test(reason + ' ' + (err.message || ''))){
+        throw new Error(
+          'API anahtarı bu domain için yetkili değil (403). ' +
+          'Google Cloud Console → Credentials → HTTP referrers listesine ' +
+          window.location.origin + '/* ekleyin veya kısıtlamayı kaldırın.'
+        );
+      }
+      if (code === 403 && /quota/i.test(reason + ' ' + (err.message || ''))){
+        throw new Error('Günlük API kotası doldu (403 quotaExceeded). Yarın tekrar deneyin.');
+      }
+      if (code === 400){
+        throw new Error('Geçersiz istek (400). API anahtarını kontrol edin.');
+      }
+      if (code === 429){
+        throw new Error('Çok fazla istek (429). Birkaç saniye sonra tekrar deneyin.');
+      }
+      throw new Error((err.message || 'API hatası') + ' (kod ' + code + ')');
+    }
 
     const items = (data.items || [])
       .filter(it => it.id && it.id.videoId)
@@ -933,14 +1036,21 @@ async function doSearch(rawQuery){
         thumb: it.snippet.thumbnails?.medium?.url || it.snippet.thumbnails?.default?.url
       }));
 
+    if (!items.length){
+      setLibTitle('Sonuç Yok');
+      renderQueue([]);
+      toast('Sonuç bulunamadı. Farklı bir terim deneyin.');
+      return;
+    }
+
     setLibTitle('Arama Sonuçları');
     renderQueue(items);
     toast(items.length + ' sonuç bulundu.');
   } catch (err){
-    console.error(err);
+    console.error('[AURORA] Arama hatası:', err);
     setLibTitle('Kitaplık');
     renderQueue(LIBRARY);
-    toast('Arama hatası: ' + err.message);
+    toast(err.message || 'Arama başarısız.', 6000);
   }
 }
 
@@ -1164,18 +1274,15 @@ function loop(now){
 /* ---------- 11) UI BAĞLAMA ---------- */
 function bindUI(){
 
-  /* Arama */
   $('#searchForm').addEventListener('submit', e => {
     e.preventDefault();
     doSearch($('#searchInput').value);
   });
 
-  /* Oynatma */
   $('#playBtn').addEventListener('click', togglePlay);
   $('#nextBtn').addEventListener('click', next);
   $('#prevBtn').addEventListener('click', prev);
 
-  /* Video overlay → tıklayınca çal */
   const overlay = $('#videoOverlay');
   const startPlayback = () => {
     if (State.playing){
@@ -1192,12 +1299,11 @@ function bindUI(){
   overlay.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' '){
       e.preventDefault();
-      e.stopPropagation();   /* DÜZELTME: document Space handler ile çift tetiklemeyi önle */
+      e.stopPropagation();
       startPlayback();
     }
   });
 
-  /* Ses */
   const vol = $('#volume');
   const volIcon = $('#volIcon');
   function updateVolUI(){
@@ -1219,7 +1325,6 @@ function bindUI(){
   });
   updateVolUI();
 
-  /* İlerleme */
   const prog = $('#progress');
   prog.addEventListener('click', e => {
     if (!State.player || !State.ready || State.isLive || !State.duration) return;
@@ -1232,13 +1337,11 @@ function bindUI(){
     if (e.key === 'ArrowLeft'){ e.preventDefault(); seekBy(-5); }
   });
 
-  /* Mood */
   $('#moods').addEventListener('click', e => {
     const btn = e.target.closest('.mood');
     if (btn) applyMood(btn.dataset.mood);
   });
 
-  /* Deep Space */
   $('#deepSpaceBtn').addEventListener('click', () => {
     State.deepSpace = !State.deepSpace;
     document.body.classList.toggle('deep-space', State.deepSpace);
@@ -1249,7 +1352,6 @@ function bindUI(){
     toast(State.deepSpace ? '🌌 Deep Space Modu aktif' : 'Aurora Modu geri yüklendi');
   });
 
-  /* API Anahtarı Modalı */
   const modal = $('#modal');
   const keyInput = $('#apiKeyInput');
   const closeModal = () => {
@@ -1285,7 +1387,6 @@ function bindUI(){
     closeModal();
   });
 
-  /* Klavye */
   document.addEventListener('keydown', e => {
     if (e.target && e.target.matches && e.target.matches('input, textarea')) return;
     if (e.code === 'Space'){ e.preventDefault(); togglePlay(); }
@@ -1296,7 +1397,6 @@ function bindUI(){
     if (e.key === 'Escape') closeModal();
   });
 
-  /* Resize */
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
@@ -1337,7 +1437,7 @@ function applyMood(moodId){
     doSearch(mood.query);
     toast(`${mood.icon} ${mood.name} modu — YouTube taranıyor…`);
   } else {
-    const list = LIBRARY.filter(t => t.mood.includes(mood.id));
+    const list = LIBRARY.filter(t => t.mood && t.mood.includes(mood.id));
     setLibTitle(mood.name);
     renderQueue(list.length ? list : LIBRARY);
     toast(`${mood.icon} ${mood.name} modu — demo kütüphanesi`);
@@ -1357,13 +1457,11 @@ async function boot(){
   bindUI();
   requestAnimationFrame(loop);
 
-  /* İlerleme + meta güncelleyici
-     DÜZELTME: duration artık periyodik olarak senkronize ediliyor */
   let metaTick = 0;
   setInterval(() => {
     if (!State.player || !State.ready) return;
     metaTick++;
-    if (metaTick % 8 === 0) refreshMeta();   /* ~2 sn'de bir */
+    if (metaTick % 8 === 0) refreshMeta();
     try {
       const cur = State.player.getCurrentTime() || 0;
       if (State.isLive){
@@ -1377,22 +1475,19 @@ async function boot(){
     } catch(e){}
   }, 250);
 
-  /* YT API yükle */
   try {
     await loadYouTubeAPI();
     createPlayer();
   } catch(err){
     console.error(err);
-    toast('YouTube API yüklenemedi: ' + err.message + ' — İnternet bağlantınızı kontrol edin.');
+    toast('YouTube API yüklenemedi: ' + err.message + ' — İnternet bağlantınızı kontrol edin.', 6000);
   }
 
-  /* Başlangıç teması */
   applyMoodInitial();
 
-  /* Bilgilendirme */
   if (!State.apiKey){
     setTimeout(() => {
-      toast('▶ Oynatmaya başlamak için video üzerindeki play butonuna tıklayın.');
+      toast('▶ Oynatmaya başlamak için video üzerindeki play butonuna tıklayın.', 5000);
     }, 1600);
   }
 }
